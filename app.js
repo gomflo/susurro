@@ -118,7 +118,12 @@
   }
   const words = $$(".rw");
   words.forEach(ringWord);
-  document.fonts.ready.then(() => words.forEach((w) => w._fit && w._fit()));
+  // Se ajusta ya, en el mismo cuadro en que aparecen los anillos: esperar a fonts.ready deja
+  // pintar un cuadro con el viewBox del HTML y la palabra se ve más grande. Luego se reajusta
+  // por si la fuente llegó después.
+  const fitWords = () => words.forEach((w) => w._fit && w._fit());
+  fitWords();
+  document.fonts.ready.then(fitWords);
 
   const setA = (el, a) => el.style.setProperty("--a", a.toFixed(3));
   function tweenA(el, from, to, ms) {
