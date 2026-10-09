@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Susurro · Dictado por voz para Mac, 100 % en tu equipo</title>
+  <meta name="description" content="Mantén presionada fn, habla y suelta: Susurro escribe tu voz como texto pulido en cualquier app de tu Mac. Sin nube, sin cuentas y gratis.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gomflo.github.io/susurro/">
+  <link rel="canonical" href="https://gomflo.github.io/susurro/">
+  <meta property="og:title" content="Susurro · Habla. Lo demás se escribe solo">
+  <meta property="og:description" content="Dictado por voz para Mac que funciona 100 % en tu equipo. Mantén fn, habla, suelta. Gratis.">
+  <meta property="og:image" content="https://gomflo.github.io/susurro/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="«Habla.» en letras de anillos rosas y «Lo demás se escribe solo.»: Susurro, dictado por voz para Mac.">
+  <meta property="og:locale" content="es_MX">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#F5F6F8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0F0F11" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="favicon.svg?v=4" type="image/svg+xml">
+  <link rel="preload" href="fonts/jost-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css?v=11">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <a class="skip" href="#contenido">Saltar al contenido</a>
+
+  <header class="nav" id="nav">
+    <div class="nav-in">
+      <a class="brand" href="#" aria-label="Susurro, inicio">
+        <svg class="mark" viewBox="0 0 64 64" width="36" height="36" aria-hidden="true"><use href="#mark"/></svg>
+        <span>susurro</span>
+      </a>
+      <nav class="nav-links" id="navLinks" aria-label="Secciones">
+        <a href="#como">Cómo funciona</a>
+        <a href="#antes-despues">Antes y después</a>
+        <a href="#privacidad">Privacidad</a>
+        <a href="#preguntas">Preguntas</a>
+      </nav>
+      <a class="btn btn-sm nav-cta" href="downloads/Susurro.dmg" download>Descargar</a>
+      <button class="nav-menu" type="button" id="navMenu" aria-expanded="false" aria-controls="navLinks">
+        <span class="sr-only">Menú</span><i></i><i></i>
+      </button>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <!-- Hero: la palabra dicha vibra en líneas; lo escrito es tinta sólida -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <h1 id="hero-title">
+            <svg class="rw rw-hero" id="heroWord" data-rings="4" viewBox="-30 -205 640 270" role="img" aria-label="Habla.">
+              <text class="rw-src" x="0" y="0">Habla.</text>
+            </svg>
+            <span class="h1-ink">Lo demás se escribe solo.</span>
+          </h1>
+          <p class="lede">Mantén presionada <kbd data-key>fn</kbd>, habla y suelta. Tu voz aparece como texto pulido en la app donde está tu cursor, sin salir nunca de tu Mac.</p>
+          <div class="key-pick" role="radiogroup" aria-labelledby="keyPickLabel">
+            <span class="key-pick-label" id="keyPickLabel">Tu tecla</span>
+            <button type="button" role="radio" aria-checked="true" data-pick="fn" aria-label="fn">fn</button>
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-pick="option" aria-label="Opción derecha">⌥</button>
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-pick="command" aria-label="Comando derecha">⌘</button>
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-pick="control" aria-label="Control derecha">⌃</button>
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-pick="shift" aria-label="Mayúsculas derecha">⇧</button>
+            <span class="key-pick-note" id="keyPickNote">La de fábrica. Cámbiala en Ajustes.</span>
+          </div>
+          <div class="cta">
+            <a class="btn btn-lg" href="downloads/Susurro.dmg" download>
+              <svg class="i-dl" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>
+              Descargar para Mac
+            </a>
+            <p class="cta-meta">Gratis · macOS 26 o posterior · Apple Silicon</p>
+          </div>
+        </div>
+
+        <figure class="sheet" id="demo">
+          <div class="sheet-apps" role="group" aria-label="Elegir ejemplo">
+            <button type="button" data-ex="0" aria-pressed="true"><img src="assets/apps/mail.png" alt="" width="28" height="28">Mail</button>
+            <button type="button" data-ex="1" aria-pressed="false"><img src="assets/apps/slack.png" alt="" width="28" height="28">Slack</button>
+            <button type="button" data-ex="2" aria-pressed="false"><img src="assets/apps/messages.png" alt="" width="28" height="28">Mensajes</button>
+            <button type="button" data-ex="3" aria-pressed="false"><img src="assets/apps/cursor.png" alt="" width="28" height="28">Cursor</button>
+          </div>
+          <div class="sheet-page" aria-hidden="true">
+            <p class="sheet-head" id="sheetHead"><span>Para</span> Laura Méndez</p>
+            <div class="sheet-body" id="sheetBody"><p class="said-done">Hola, Laura:</p><p class="said-done">¿Podemos mover la junta al jueves a las 10:00? Ahí revisamos el presupuesto.</p></div>
+          </div>
+          <div class="sheet-foot">
+            <button class="fn-key" type="button" id="fnKey" aria-describedby="fnHint">
+              <span class="fn-label" id="fnLabel">fn</span>
+              <span class="fn-word" id="fnWord" hidden></span>
+              <svg class="fn-globe" id="fnGlobe" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9M12 3c-2.6 2.6-3.8 5.6-3.8 9s1.2 6.4 3.8 9"/></svg>
+              <span class="sr-only">Mantén presionada para dictar el ejemplo</span>
+            </button>
+            <p class="fn-hint" id="fnHint"><span class="voice-dot" aria-hidden="true"></span><span id="fnStatus">Mantén presionada la tecla para dictar</span></p>
+          </div>
+          <figcaption class="sr-only" id="demoText" aria-live="polite">Demostración: al mantener fn, lo que dices aparece en líneas; al soltar, se escribe pulido en la app. Ejemplo de Mail: «eh hola Laura este quería ver si podemos mover la junta al martes no mejor al jueves a las diez» se escribe «Hola, Laura: ¿Podemos mover la junta al jueves a las 10:00?».</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Cómo funciona: tres gestos, numerados porque el orden importa -->
+    <section class="section how" id="como" aria-labelledby="como-title">
+      <div class="wrap">
+        <h2 id="como-title">Mantén. Habla. Suelta.</h2>
+        <ol class="steps">
+          <li>
+            <svg class="rw rw-num" data-rings="3" viewBox="-40 -210 230 260" aria-hidden="true"><text class="rw-src" x="0" y="0">1</text></svg>
+            <h3>Mantén presionada <kbd data-key>fn</kbd></h3>
+            <p>fn de fábrica, o ⌥, ⌘, ⌃ o ⇧ del lado derecho: tú eliges. En cualquier app, una píldora discreta te avisa que Susurro te escucha.</p>
+          </li>
+          <li>
+            <svg class="rw rw-num" data-rings="3" viewBox="-40 -210 230 260" aria-hidden="true"><text class="rw-src" x="0" y="0">2</text></svg>
+            <h3>Habla con naturalidad</h3>
+            <p>Sin dictar comas ni puntos. Haz pausas, corrígete, piensa en voz alta: Susurro se queda con lo que quisiste decir.</p>
+          </li>
+          <li>
+            <svg class="rw rw-num" data-rings="3" viewBox="-40 -210 230 260" aria-hidden="true"><text class="rw-src" x="0" y="0">3</text></svg>
+            <h3>Suelta y listo</h3>
+            <p>El texto aparece donde estaba tu cursor, con puntuación y acentos, y sin muletillas.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Antes y después: lo dicho llega en líneas, se corrige a mano y se pasa en limpio -->
+    <section class="section galley" id="antes-despues" aria-labelledby="ad-title">
+      <div class="wrap">
+        <h2 id="ad-title">Tú hablas como hablas. <span class="soft">Susurro escribe como escribes.</span></h2>
+        <p class="sec-lede">Las muletillas desaparecen, tus correcciones se respetan y la puntuación llega sola.</p>
+      </div>
+
+      <figure class="galera" id="galera">
+        <div class="gl-stage" aria-hidden="true">
+          <div class="gl-line" id="glLine"></div>
+          <svg class="gl-marks" id="glMarks"></svg>
+          <div class="gl-notes" id="glNotes"></div>
+          <span class="gl-voice" id="glPill"><i></i><i></i><i></i></span>
+          <i class="gl-clock" id="glClock"></i>
+        </div>
+        <button class="pause gl-pause" type="button" id="glPause" aria-pressed="false">
+          <svg class="i-pause" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" rx="1.75"/><rect x="9.5" y="2" width="3.5" height="12" rx="1.75"/></svg>
+          <svg class="i-play" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z"/></svg>
+          <span id="glPauseLabel">Pausar</span>
+        </button>
+        <figcaption class="sr-only">Animación: frases dichas en voz alta aparecen en líneas, un corrector marca las muletillas, las autocorrecciones, la puntuación y los nombres del diccionario, y cada frase se pasa en limpio. Por ejemplo, «se la mando el martes no mejor el jueves a las diez» queda «Se la mando el jueves a las 10:00.».</figcaption>
+      </figure>
+
+      <div class="wrap">
+        <ul class="legend" aria-label="Qué marca el corrector">
+          <li><svg viewBox="0 0 40 20" width="40" height="20" aria-hidden="true"><ellipse cx="20" cy="10" rx="16" ry="7"/></svg>Muletilla eliminada</li>
+          <li><svg viewBox="0 0 40 20" width="40" height="20" aria-hidden="true"><path d="M4 12 36 8"/></svg>Autocorrección</li>
+          <li><svg viewBox="0 0 40 20" width="40" height="20" aria-hidden="true"><path d="M13 17 20 5l7 12"/></svg>Puntuación y formato</li>
+          <li><svg viewBox="0 0 40 20" width="40" height="20" aria-hidden="true"><path d="M4 12c3-5 5 5 8 0s5 5 8 0 5 5 8 0 5 5 8 0"/></svg>Diccionario personal</li>
+        </ul>
+
+        <div class="tabs" data-tabs>
+          <div class="tablist" role="tablist" aria-label="Ejemplos de antes y después">
+            <button role="tab" id="t-ad-1" aria-controls="p-ad-1" aria-selected="true">Correo</button>
+            <button role="tab" id="t-ad-2" aria-controls="p-ad-2" aria-selected="false" tabindex="-1">Mensaje</button>
+            <button role="tab" id="t-ad-3" aria-controls="p-ad-3" aria-selected="false" tabindex="-1">Lista</button>
+            <button role="tab" id="t-ad-4" aria-controls="p-ad-4" aria-selected="false" tabindex="-1">Nombres</button>
+          </div>
+
+          <div class="ba" role="tabpanel" id="p-ad-1" aria-labelledby="t-ad-1" tabindex="0">
+            <div class="ba-col">
+              <p class="ba-label">Lo que dijiste</p>
+              <p class="raw"><s>eh</s> hola Laura <s>este</s> quería ver si podemos mover la junta <s>al martes no mejor</s> al jueves a las diez <s>y pues</s> ahí revisamos el presupuesto</p>
+            </div>
+            <div class="ba-col">
+              <p class="ba-label">Lo que se escribe</p>
+              <p class="clean">Hola, Laura:<br><br>¿Podemos mover la junta <mark>al jueves</mark> a las <mark>10:00</mark>? Ahí revisamos el presupuesto.</p>
+            </div>
+          </div>
+          <div class="ba" role="tabpanel" id="p-ad-2" aria-labelledby="t-ad-2" tabindex="0" hidden>
+            <div class="ba-col">
+              <p class="ba-label">Lo que dijiste</p>
+              <p class="raw"><s>o sea</s> ya voy saliendo llego como en quince minutos <s>mmm</s> si quieres pide tú los tacos</p>
+            </div>
+            <div class="ba-col">
+              <p class="ba-label">Lo que se escribe</p>
+              <p class="clean">Ya voy saliendo, llego en unos <mark>15 minutos</mark>. Si quieres, pide tú los tacos.</p>
+            </div>
+          </div>
+          <div class="ba" role="tabpanel" id="p-ad-3" aria-labelledby="t-ad-3" tabindex="0" hidden>
+            <div class="ba-col">
+              <p class="ba-label">Lo que dijiste</p>
+              <p class="raw">pendientes para el lanzamiento uno revisar los textos dos subir las capturas <s>eh</s> tres avisarle a Mariana</p>
+            </div>
+            <div class="ba-col">
+              <p class="ba-label">Lo que se escribe</p>
+              <div class="clean">Pendientes para el lanzamiento:
+                <ol class="clean-list"><li><mark>Revisar</mark> los textos.</li><li>Subir las capturas.</li><li>Avisarle a Mariana.</li></ol>
+              </div>
+            </div>
+          </div>
+          <div class="ba" role="tabpanel" id="p-ad-4" aria-labelledby="t-ad-4" tabindex="0" hidden>
+            <div class="ba-col">
+              <p class="ba-label">Lo que dijiste</p>
+              <p class="raw"><s>eh</s> pásale el pull request a <s>jimena</s> para que lo revise antes del viernes <s>en la mañana no en la tarde</s></p>
+            </div>
+            <div class="ba-col">
+              <p class="ba-label">Lo que se escribe</p>
+              <p class="clean">Pásale el pull request a <mark>Ximena</mark> para que lo revise antes del viernes <mark>en la tarde</mark>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Estilos: la misma frase, cuatro lugares -->
+    <section class="section tones" id="estilos" aria-labelledby="estilos-title">
+      <div class="wrap">
+        <h2 id="estilos-title">Un tono para cada lugar.</h2>
+        <p class="sec-lede">Susurro sabe en qué app estás y ajusta cómo escribe: relajado en tus chats, cuidado en tus correos, preciso en tu código. Tú eliges el estilo de cada una.</p>
+        <p class="said-line"><span class="said-tag">Dijiste</span> <span class="hollow">oye no voy a llegar a la junta de las nueve se me complicó algo la movemos a la tarde</span></p>
+        <ul class="tone-row">
+          <li>
+            <p class="tone-app"><img src="assets/apps/messages.png" alt="" width="32" height="32" loading="lazy"><img src="assets/apps/whatsapp.png" alt="" width="32" height="32" loading="lazy"><span><b>Casual</b> Mensajes, WhatsApp</span></p>
+            <p class="tone-out">Oye, no voy a llegar a la junta de las 9, se me complicó algo. ¿La movemos a la tarde?</p>
+          </li>
+          <li>
+            <p class="tone-app"><img src="assets/apps/mail.png" alt="" width="32" height="32" loading="lazy"><span><b>Formal</b> Mail, Gmail, Outlook</span></p>
+            <p class="tone-out">Hola:<br><br>No podré asistir a la junta de las 9:00 por un imprevisto. ¿Sería posible moverla a la tarde?<br><br>Gracias.</p>
+          </li>
+          <li>
+            <p class="tone-app"><img src="assets/apps/slack.png" alt="" width="32" height="32" loading="lazy"><img src="assets/apps/notion.png" alt="" width="32" height="32" loading="lazy"><img src="assets/apps/linear.png" alt="" width="32" height="32" loading="lazy"><span><b>Trabajo</b> Slack, Notion, Linear</span></p>
+            <p class="tone-out">No llego a la junta de las 9 por un imprevisto. ¿Podemos moverla a la tarde?</p>
+          </li>
+          <li>
+            <p class="tone-app"><img src="assets/apps/cursor.png" alt="" width="32" height="32" loading="lazy"><img src="assets/apps/xcode.png" alt="" width="32" height="32" loading="lazy"><span><b>Código</b> Cursor, Xcode, Terminal</span></p>
+            <p class="said-mini">Dijiste: <span>haz que la función de login regrese un error si el correo viene vacío</span></p>
+            <p class="tone-out">Haz que <code>login()</code> regrese un error si <code>email</code> viene vacío.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Funciones: índice denso, sin tarjetas -->
+    <section class="section features" id="funciones" aria-labelledby="funciones-title">
+      <div class="wrap">
+        <h2 id="funciones-title">Hecho para escribir todo el día.</h2>
+
+        <div class="command">
+          <div class="command-copy">
+            <h3>Modo comando</h3>
+            <p>Selecciona un texto, mantén <kbd data-key>fn</kbd> + <kbd>⌃</kbd> y di qué cambiar: «hazlo más formal», «resúmelo en tres viñetas», «tradúcelo al inglés». Sin selección, escribe lo que pides. Requiere Apple Intelligence.</p>
+          </div>
+          <div class="command-demo" aria-hidden="true">
+            <p class="cmd-src"><span class="sel">nel, mañana no puedo, ¿lo vemos el lunes?</span></p>
+            <p class="cmd-said"><span class="voice-dot"></span><span class="hollow">«hazlo más formal»</span></p>
+            <p class="cmd-out">Mañana no me será posible. ¿Podríamos revisarlo el lunes?</p>
+          </div>
+        </div>
+
+        <dl class="index">
+          <div><dt>Manos libres</dt><dd>Doble toque a <kbd data-key>fn</kbd> o <kbd data-key>fn</kbd> + <kbd>Espacio</kbd> y habla sin sostener nada. Un toque termina.</dd></div>
+          <div><dt>Diccionario personal</dt><dd>Nombres, marcas y términos técnicos. Cuando corriges una palabra, Susurro la aprende.</dd></div>
+          <div><dt>Snippets por voz</dt><dd>Di «mi correo» y se escribe completo. También tu dirección, tu firma o esa respuesta que repites a diario.</dd></div>
+          <div><dt>«…presiona enter»</dt><dd>Termina la frase con «presiona enter» y el mensaje se pega y se envía.</dd></div>
+          <div><dt>Comandos hablados</dt><dd>«Nueva línea», «nuevo párrafo», «punto y aparte». Y «borra eso» deshace lo último que dijiste.</dd></div>
+          <div><dt>Historial y notas</dt><dd>Todo lo que dictas queda guardado y buscable en tu Mac, más un bloc para pensar en voz alta.</dd></div>
+          <div><dt>Modo susurro</dt><dd>¿Oficina abierta o alguien dormido al lado? Habla bajito y Susurro te sigue entendiendo.</dd></div>
+          <div><dt>Baja la música</dt><dd>Mientras dictas, la música y los videos bajan de volumen. Al soltar <kbd data-key>fn</kbd>, regresan solos.</dd></div>
+          <div><dt>Multilingüe</dt><dd>Español, inglés y los demás idiomas del modelo de voz de Apple. Cambia de idioma desde la barra de menús.</dd></div>
+          <div><dt>Pega el último</dt><dd><kbd>⌃</kbd> <kbd>⌘</kbd> <kbd>V</kbd> vuelve a pegar tu último dictado, por si cambiaste de ventana.</dd></div>
+          <div><dt>Estadísticas</dt><dd>Tu racha, tus palabras por minuto y cuánto tiempo te has ahorrado. Calculado en tu Mac.</dd></div>
+          <div><dt>Tu tecla</dt><dd>¿Prefieres otra? Usa <kbd>⌥</kbd>, <kbd>⌘</kbd>, <kbd>⌃</kbd> o <kbd>⇧</kbd> del lado derecho.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- Privacidad: los anillos de la voz se detienen en el borde de la Mac -->
+    <section class="privacy" id="privacidad" aria-labelledby="priv-title">
+      <div class="wrap privacy-grid">
+        <div class="privacy-copy">
+          <h2 id="priv-title">Tu voz no sale de tu Mac.</h2>
+          <p class="sec-lede">Susurro transcribe con el modelo de voz que Apple integra en macOS y pule el texto con Apple Intelligence, los dos en tu equipo. No hay servidores que escuchen ni cuentas que crear.</p>
+        </div>
+        <figure class="bound" id="bound">
+          <svg viewBox="0 0 560 400" role="img" aria-labelledby="boundTitle">
+            <title id="boundTitle">Diagrama: el micrófono, el modelo de voz de Apple, Apple Intelligence y tu app están dentro de tu Mac. Las ondas de tu voz se detienen en su borde; internet no participa.</title>
+            <defs><clipPath id="macClip"><rect x="20" y="20" width="520" height="300" rx="28"/></clipPath></defs>
+            <g clip-path="url(#macClip)" class="bound-rings" id="boundRings"></g>
+            <rect class="bound-edge" x="20" y="20" width="520" height="300" rx="28"/>
+            <path class="bound-stand" d="M200 320h160l18 48H182z"/>
+            <g class="bound-steps">
+              <circle cx="96" cy="170" r="9"/><text x="96" y="208">Tu voz</text>
+              <circle cx="218" cy="170" r="6"/><text x="218" y="208">Modelo de voz</text><text class="sub" x="218" y="228">de Apple</text>
+              <circle cx="342" cy="170" r="6"/><text x="342" y="208">Apple</text><text class="sub" x="342" y="228">Intelligence</text>
+              <circle cx="464" cy="170" r="6"/><text x="464" y="208">Tu app</text>
+              <path d="M110 170h96M230 170h100M354 170h98"/>
+            </g>
+            <text class="bound-label" x="44" y="58">Tu Mac</text>
+          </svg>
+          <ol class="bound-list" aria-hidden="true"><li>Tu voz</li><li>Modelo de voz de Apple</li><li>Apple Intelligence</li><li>Tu app</li></ol>
+          <figcaption>Internet no participa.</figcaption>
+        </figure>
+        <ul class="promises">
+          <li><h3>Sin nube</h3><p>El audio se procesa en tu Mac y se descarta. Nada viaja a un servidor.</p></li>
+          <li><h3>Sin cuentas</h3><p>Ni correo, ni contraseña, ni registro. Lo abres y empiezas a hablar.</p></li>
+          <li><h3>Sin suscripción</h3><p>Susurro es gratis. No hay plan mensual ni funciones bloqueadas.</p></li>
+          <li><h3>Tus datos, contigo</h3><p>Historial, notas, diccionario y estadísticas se guardan solo en tu equipo.</p></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Velocidad: tiempos medidos, no promesas -->
+    <section class="section speed" id="velocidad" aria-labelledby="vel-title">
+      <div class="wrap speed-grid">
+        <div>
+          <h2 id="vel-title">Sueltas <kbd class="kbd-xl" data-key>fn</kbd> y ya está escrito.</h2>
+          <p class="sec-lede">Susurro transcribe mientras hablas. Al soltar la tecla solo falta cerrar la frase, así que el texto llega casi al instante.</p>
+        </div>
+        <figure class="timing">
+          <table>
+            <caption>Lo que tarda cada paso</caption>
+            <thead><tr><th scope="col">Paso</th><th scope="col">Tiempo</th><th scope="col"><span class="sr-only">Escala de 0 a 1.2 segundos</span><span class="scale" aria-hidden="true"><span>0</span><span>0.4 s</span><span>0.8 s</span><span>1.2 s</span></span></th></tr></thead>
+            <tbody>
+              <tr style="--lo:.08;--hi:.2"><th scope="row">Transcribir 5 s de voz <small>En vivo es aún menos: casi todo se transcribió mientras hablabas.</small></th><td>80–200 ms</td><td class="bar" aria-hidden="true"><i></i></td></tr>
+              <tr style="--lo:.00003;--hi:.0017"><th scope="row">Quitar muletillas y aplicar correcciones</th><td>menos de 2 ms</td><td class="bar" aria-hidden="true"><i></i></td></tr>
+              <tr style="--lo:.3;--hi:1.1"><th scope="row">Pulir con Apple Intelligence <small>Opcional. Las frases cortas y el tono Literal se lo saltan.</small></th><td>0.3–1.1 s</td><td class="bar" aria-hidden="true"><i></i></td></tr>
+            </tbody>
+          </table>
+          <figcaption>Medido con voz sintética en una Mac con Apple Silicon. El modelo de voz queda listo unos 160 ms después de abrir la app.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Preguntas -->
+    <section class="section faq-sec" id="preguntas" aria-labelledby="faq-title">
+      <div class="wrap faq-grid">
+        <h2 id="faq-title">Lo que te estás preguntando.</h2>
+        <div class="faq">
+          <details>
+            <summary>¿De verdad es gratis?</summary>
+            <p>Sí. Sin suscripción, sin periodo de prueba y sin cuentas. Lo descargas, le das permisos y empiezas a dictar.</p>
+          </details>
+          <details>
+            <summary>¿Qué necesito para usarlo?</summary>
+            <p>Una Mac con Apple Silicon (M1 o posterior) y macOS 26 o posterior. Para el pulido del texto, Apple Intelligence debe estar activado en Configuración del Sistema.</p>
+          </details>
+          <details>
+            <summary>¿Mi voz o mis textos se envían a algún lado?</summary>
+            <p>No. La transcripción y el pulido ocurren en tu Mac con los modelos de Apple en el dispositivo. Tu historial, notas, diccionario y estadísticas también se quedan en tu equipo.</p>
+          </details>
+          <details>
+            <summary>¿Funciona sin internet?</summary>
+            <p>Sí. Como todo corre en tu Mac, puedes dictar sin conexión. macOS puede necesitar descargar una sola vez el modelo de voz de tu idioma.</p>
+          </details>
+          <details>
+            <summary>¿En qué apps funciona?</summary>
+            <p>En prácticamente cualquier lugar donde puedas escribir: correo, chats, documentos, el navegador, editores de código y la Terminal. Si ves un cursor, Susurro puede escribir ahí.</p>
+          </details>
+          <details>
+            <summary>¿Qué idiomas entiende?</summary>
+            <p>Español, inglés y los demás idiomas compatibles con el modelo de voz de Apple. Eliges el tuyo en la bienvenida y cambias cuando quieras desde la barra de menús.</p>
+          </details>
+          <details>
+            <summary>¿Qué pasa si me corrijo mientras hablo?</summary>
+            <p>Susurro se queda con lo que quisiste decir. Si dices «el martes, no, mejor el jueves», solo se escribe «el jueves».</p>
+          </details>
+          <details>
+            <summary>¿Tengo que usar la tecla fn?</summary>
+            <p>No. fn es la tecla de fábrica, pero puedes cambiarla por ⌥, ⌘, ⌃ o ⇧ del lado derecho en la bienvenida o en Ajustes. Mantener, doble toque, tecla + Espacio y tecla + ⌃ funcionan igual con la que elijas.</p>
+          </details>
+          <details>
+            <summary>¿Qué permisos pide?</summary>
+            <p>Micrófono, para escucharte mientras mantienes fn, y Accesibilidad, para escribir el texto en la app donde está tu cursor.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cierre -->
+    <section class="final" id="descargar" aria-labelledby="final-title">
+      <div class="wrap final-in">
+        <svg class="rw rw-final" id="finalWord" data-rings="4" viewBox="-30 -205 420 270" aria-hidden="true"><text class="rw-src" x="0" y="0">Dilo.</text></svg>
+        <div class="final-copy">
+          <h2 id="final-title">Tu próxima frase, sin teclear.</h2>
+          <div class="final-act">
+            <div>
+              <a class="btn btn-lg" href="downloads/Susurro.dmg" download>
+                <svg class="i-dl" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>
+                Descargar para Mac
+              </a>
+              <p class="cta-meta">Gratis · macOS 26 o posterior · Apple Silicon</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-in">
+      <a class="brand" href="#" aria-label="Susurro, inicio">
+        <svg class="mark" viewBox="0 0 64 64" width="28" height="28" aria-hidden="true"><use href="#mark"/></svg>
+        <span>susurro</span>
+      </a>
+      <p>Dictado por voz para Mac, 100 % en tu equipo.</p>
+      <nav aria-label="Pie de página">
+        <a href="downloads/Susurro.dmg" download>Descargar</a>
+        <a href="#privacidad">Privacidad</a>
+        <a href="#preguntas">Preguntas</a>
+      </nav>
+      <p class="legal">© 2026 Susurro. Apple, Mac, macOS y Apple Intelligence son marcas de Apple Inc.</p>
+    </div>
+  </footer>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="mark" viewBox="0 0 64 64">
+      <path id="markS" d="M32.08 40.84Q28.84 40.84 26.86 39.90Q24.87 38.96 24.28 37.51Q24.09 37.01 24.09 36.58Q24.09 35.67 24.69 35.09Q25.29 34.52 26.22 34.52Q27.47 34.52 28.61 35.65Q29.31 36.41 30.14 36.78Q30.97 37.14 32.13 37.14Q32.85 37.14 33.37 36.97Q33.89 36.79 34.17 36.47Q34.46 36.14 34.46 35.69Q34.46 35.13 34.00 34.79Q33.55 34.46 32.39 34.23L29.44 33.64Q26.95 33.15 25.67 31.87Q24.40 30.58 24.40 28.67Q24.40 26.12 26.43 24.64Q28.45 23.16 31.95 23.16Q33.89 23.16 35.36 23.64Q36.84 24.12 37.78 24.91Q38.73 25.70 39.02 26.62Q39.16 27.03 39.16 27.42Q39.16 28.22 38.65 28.73Q38.14 29.24 37.07 29.24Q36.61 29.24 36.08 29.06Q35.55 28.88 35.20 28.56Q34.56 27.94 33.84 27.40Q33.12 26.86 31.91 26.86Q30.92 26.86 30.29 27.26Q29.67 27.67 29.67 28.36Q29.67 28.90 30.13 29.27Q30.60 29.64 31.80 29.88L34.73 30.46Q37.45 31.00 38.68 32.09Q39.91 33.18 39.91 35.08Q39.91 36.84 38.93 38.13Q37.95 39.43 36.19 40.13Q34.43 40.84 32.08 40.84Z"/>
+      <rect width="64" height="64" rx="14.4" fill="#E4007C"/>
+      <g transform="translate(32 32) scale(1.6) translate(-32 -32)" stroke-linejoin="round">
+        <use href="#markS" fill="none" stroke="#fff" stroke-width="6.14"/>
+        <use href="#markS" fill="none" stroke="#E4007C" stroke-width="3.48"/>
+        <use href="#markS" fill="#fff"/>
+      </g>
+    </symbol>
+  </svg>
+  <script src="app.js?v=11" defer></script>
+</body>
+</html>
