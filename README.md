@@ -1,6 +1,6 @@
 # Susurro · landing
 
-Dictado por voz para Mac, 100 % en tu equipo. Sitio: https://gomflo.github.io/susurro/
+Dictado por voz para Mac, 100 % en tu equipo. Sitio: https://gomflo.dev/susurro/
 
 HTML, CSS y JS estáticos, sin build. GitHub Pages publica la rama `main` desde la raíz.
 
