@@ -19,6 +19,22 @@
   <meta name="theme-color" content="#F5F6F8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0F0F11" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Susurro",
+    "description": "Dictado por voz para Mac que funciona 100 % en tu equipo. Mantén fn, habla y suelta: el texto aparece pulido en la app donde está tu cursor.",
+    "url": "https://gomflo.dev/susurro/",
+    "downloadUrl": "https://github.com/gomflo/susurro/releases/latest/download/Susurro.dmg",
+    "image": "https://gomflo.dev/susurro/og.png",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "macOS 26",
+    "processorRequirements": "Apple Silicon",
+    "inLanguage": "es-MX",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
   <link rel="icon" href="favicon.svg?v=4" type="image/svg+xml">
   <link rel="preload" href="fonts/jost-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="styles.css?v=11">
@@ -39,7 +55,7 @@
         <a href="#privacidad">Privacidad</a>
         <a href="#preguntas">Preguntas</a>
       </nav>
-      <a class="btn btn-sm nav-cta" href="downloads/Susurro.dmg" download>Descargar</a>
+      <a class="btn btn-sm nav-cta" href="https://github.com/gomflo/susurro/releases/latest/download/Susurro.dmg">Descargar</a>
       <button class="nav-menu" type="button" id="navMenu" aria-expanded="false" aria-controls="navLinks">
         <span class="sr-only">Menú</span><i></i><i></i>
       </button>
@@ -68,7 +84,7 @@
             <span class="key-pick-note" id="keyPickNote">La de fábrica. Cámbiala en Ajustes.</span>
           </div>
           <div class="cta">
-            <a class="btn btn-lg" href="downloads/Susurro.dmg" download>
+            <a class="btn btn-lg" href="https://github.com/gomflo/susurro/releases/latest/download/Susurro.dmg">
               <svg class="i-dl" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>
               Descargar para Mac
             </a>
@@ -343,6 +359,10 @@
             <p>Una Mac con Apple Silicon (M1 o posterior) y macOS 26 o posterior. Para el pulido del texto, Apple Intelligence debe estar activado en Configuración del Sistema.</p>
           </details>
           <details>
+            <summary>macOS dice que no puede verificar la app. ¿Qué hago?</summary>
+            <p>Susurro todavía no pasa por la notarización de Apple, así que la primera vez macOS la detiene. Abre Configuración del Sistema › Privacidad y seguridad, baja hasta Seguridad y elige «Abrir de todos modos». Solo se hace una vez.</p>
+          </details>
+          <details>
             <summary>¿Mi voz o mis textos se envían a algún lado?</summary>
             <p>No. La transcripción y el pulido ocurren en tu Mac con los modelos de Apple en el dispositivo. Tu historial, notas, diccionario y estadísticas también se quedan en tu equipo.</p>
           </details>
@@ -382,7 +402,7 @@
           <h2 id="final-title">Tu próxima frase, sin teclear.</h2>
           <div class="final-act">
             <div>
-              <a class="btn btn-lg" href="downloads/Susurro.dmg" download>
+              <a class="btn btn-lg" href="https://github.com/gomflo/susurro/releases/latest/download/Susurro.dmg">
                 <svg class="i-dl" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>
                 Descargar para Mac
               </a>
@@ -402,7 +422,7 @@
       </a>
       <p>Dictado por voz para Mac, 100 % en tu equipo.</p>
       <nav aria-label="Pie de página">
-        <a href="downloads/Susurro.dmg" download>Descargar</a>
+        <a href="https://github.com/gomflo/susurro/releases/latest/download/Susurro.dmg">Descargar</a>
         <a href="#privacidad">Privacidad</a>
         <a href="#preguntas">Preguntas</a>
       </nav>
