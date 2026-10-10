@@ -23,3 +23,5 @@ Es la landing: HTML, CSS y JS estáticos, sin build. GitHub Pages publica la ram
 
 - El instalador no vive aquí: es el archivo `Susurro.dmg` del último [release](https://github.com/gomflo/susurro/releases), que es a donde apuntan los botones.
 - Las rutas son relativas porque el sitio vive bajo `/susurro/`.
+
+![](https://stats.gomflo.dev/p/readme-susurro)
