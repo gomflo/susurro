@@ -126,6 +126,30 @@
   document.fonts.ready.then(fitWords);
 
   const setA = (el, a) => el.style.setProperty("--a", a.toFixed(3));
+
+  // Las líneas de la voz, con la misma forma que la píldora de la app (src/overlay.rs):
+  // campanas que nacen del borde inferior; la de afuera es la más alta y ancha.
+  // sweep: al pulir, la cresta se angosta y recorre el ancho.
+  function voiceLines(svg, n) {
+    const path = svg.appendChild(document.createElementNS("http://www.w3.org/2000/svg", "path"));
+    let W = 0, H = 0;
+    new ResizeObserver(() => { W = svg.clientWidth; H = svg.clientHeight; }).observe(svg);
+    return (now, lvl, sweep) => {
+      let d = "";
+      for (let i = 0; i < n; i++) {
+        const k = (i + 1) / n;
+        const wobble = Math.sin(now * .007 + i * 1.3) * .5 + .5;
+        const a = Math.min(1, lvl * (.8 + .2 * wobble)) * (H - 6) * Math.pow(k, .85);
+        const s = W * (sweep ? .08 + .1 * k : .12 + .16 * k);
+        const cx = W / 2 + (sweep ? Math.sin(now * .0032 - i * .18) * .26 : Math.sin(now * .0011 + i * .45) * .035) * W;
+        for (let j = 0; j <= 48; j++) {
+          const x = W * j / 48, u = (x - cx) / s;
+          d += (j ? "L" : "M") + x.toFixed(1) + " " + (H + 1 - a * Math.exp(-u * u)).toFixed(1);
+        }
+      }
+      path.setAttribute("d", d);
+    };
+  }
   function tweenA(el, from, to, ms) {
     const t0 = performance.now();
     const step = (now) => {
@@ -199,7 +223,8 @@
     const key = $("#fnKey"), body = $("#sheetBody"), head = $("#sheetHead"), status = $("#fnStatus"), hint = $("#fnHint");
     const hero = $("#heroWord");
     const appBtns = $$("[data-ex]", demo);
-    let ex = 0, state = "idle", timers = [], queue = [], amp = 0, raf = 0, autoplay = true;
+    let ex = 0, state = "idle", timers = [], queue = [], amp = 0, raf = 0, autoplay = true, lineLvl = 0;
+    const lines = voiceLines($("#sheetLines"), 6);
     const IDLE = "Mantén presionada la tecla para dictar";
 
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
@@ -213,14 +238,19 @@
       body.innerHTML = e.out.map((p) => `<p>${p}</p>`).join("");
     }
 
-    // La onda de la voz: los anillos de «Habla.» respiran con lo que dices.
+    // La onda de la voz: los anillos de «Habla.» y las líneas de la hoja respiran con lo que dices.
     function voiceLoop(now) {
-      const target = state === "listening" ? .95 + .35 * Math.sin(now / 140) * Math.sin(now / 330) + amp : 1;
+      const on = state === "listening", polishing = state === "polishing";
+      const wave = Math.sin(now / 140) * Math.sin(now / 330);
+      const target = on ? .95 + .35 * wave + amp : 1;
       const cur = parseFloat(hero.style.getPropertyValue("--a")) || 1;
       setA(hero, cur + (target - cur) * .22);
+      const lineTarget = on ? .5 + .22 * wave + amp : polishing ? .38 : 0;
+      lineLvl += (lineTarget - lineLvl) * (lineTarget > lineLvl ? .2 : .1);
+      lines(now, lineLvl, polishing);
       amp *= .9;
-      if (state === "listening" || Math.abs(cur - 1) > .01) raf = requestAnimationFrame(voiceLoop);
-      else { setA(hero, 1); raf = 0; }
+      if (on || polishing || Math.abs(cur - 1) > .01 || lineLvl > .004) raf = requestAnimationFrame(voiceLoop);
+      else { setA(hero, 1); lineLvl = 0; lines(now, 0, false); raf = 0; }
     }
     const startVoice = () => { if (!raf && !reduceMQ.matches) raf = requestAnimationFrame(voiceLoop); };
 
@@ -254,6 +284,7 @@
         at += reduceMQ.matches ? 0 : 150 + w.length * 34;
         if (i === queue.length - 1) later(() => { if (state === "listening") setStatus("Suelta la tecla para escribir"); }, at + 200);
       });
+      if (reduceMQ.matches) lines(0, .5, false);
       startVoice();
     }
 
@@ -268,6 +299,7 @@
       hint.classList.remove("listening");
       hero.classList.remove("speaking");
       body.classList.add("polishing");
+      if (reduceMQ.matches) lines(0, 0, false);
       $(".listen-caret", body)?.remove();
       setStatus("Puliendo…");
       later(() => {
@@ -530,6 +562,21 @@
     reduceMQ.addEventListener("change", () => { reduce = reduceMQ.matches; pauseBtn.hidden = reduce; start(lineIdx); });
     pauseBtn.hidden = reduce;
     addEventListener("resize", () => reduce && still());
+
+    // La píldora de la galera: escucha, pule (cresta que recorre) y vuelve a reposo.
+    const pillLines = voiceLines($("svg", pill), 4);
+    let pillLvl = 0;
+    (function pillLoop(now) {
+      requestAnimationFrame(pillLoop);
+      if (reduce) { if (pillLvl) pillLines(0, pillLvl = 0, false); return; }
+      if (halted()) return;
+      const quiet = pill.classList.contains("quiet"), polishing = pill.classList.contains("polishing");
+      if (quiet && !pillLvl) return;
+      const target = quiet ? 0 : polishing ? .5 : .6 + .35 * Math.sin(now / 140) * Math.sin(now / 330);
+      pillLvl += (target - pillLvl) * .15;
+      if (quiet && pillLvl < .004) pillLvl = 0;
+      pillLines(now, pillLvl, polishing);
+    })(0);
 
     document.fonts.ready.then(() => start(0));
   }
