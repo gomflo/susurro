@@ -258,10 +258,10 @@ h3 { font-weight: 600; font-size: 1.375rem; line-height: 1.2; letter-spacing: -.
 .gl-note.big { font-size: 1.9rem; font-weight: 700; line-height: 1; }
 .gl-note.dot { width: 16px; height: 16px; border: 2.5px solid currentColor; border-radius: 50%; font-size: 0; }
 .gl-note.dot::after { content: ""; position: absolute; inset: 0; margin: auto; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-/* La píldora de la app, tal cual: oscura en ambos temas, se encoge a su barra de reposo */
-.gl-voice { --voice: #ff3d9a; position: absolute; left: 50%; bottom: 26px; width: 104px; height: 30px; transform: translateX(-50%); overflow: hidden; border: 1px solid rgb(255 255 255 / .16); border-radius: 999px; background: #0f0f11; transition: width .35s var(--ease-out), height .35s var(--ease-out); }
-.gl-voice.quiet { width: 38px; height: 7px; }
-.gl-voice path { stroke-width: 1.5; }
+/* La píldora de la app, a 1.25× para que se lea en la banda: oscura en ambos temas, se encoge a su barra de reposo */
+.gl-voice { --voice: #ff3d9a; position: absolute; left: 50%; bottom: 26px; width: 130px; height: 38px; transform: translateX(-50%); overflow: hidden; border: 1px solid rgb(255 255 255 / .16); border-radius: 999px; background: #0f0f11; transition: width .35s var(--ease-out), height .35s var(--ease-out); }
+.gl-voice.quiet { width: 48px; height: 9px; }
+.gl-voice path { stroke-width: 1.9; }
 .gl-clock { position: absolute; width: 0; height: 0; }
 .pause { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border: 2px solid var(--ink); border-radius: 999px; font-weight: 500; font-size: .875rem; }
 .pause svg { fill: currentColor; }
