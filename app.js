@@ -223,8 +223,7 @@
     const key = $("#fnKey"), body = $("#sheetBody"), head = $("#sheetHead"), status = $("#fnStatus"), hint = $("#fnHint");
     const hero = $("#heroWord");
     const appBtns = $$("[data-ex]", demo);
-    let ex = 0, state = "idle", timers = [], queue = [], amp = 0, raf = 0, autoplay = true, lineLvl = 0;
-    const lines = voiceLines($("#sheetLines"), 6);
+    let ex = 0, state = "idle", timers = [], queue = [], amp = 0, raf = 0, autoplay = true;
     const IDLE = "Mantén presionada la tecla para dictar";
 
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
@@ -238,19 +237,14 @@
       body.innerHTML = e.out.map((p) => `<p>${p}</p>`).join("");
     }
 
-    // La onda de la voz: los anillos de «Habla.» y las líneas de la hoja respiran con lo que dices.
+    // La onda de la voz: los anillos de «Habla.» respiran con lo que dices.
     function voiceLoop(now) {
-      const on = state === "listening", polishing = state === "polishing";
-      const wave = Math.sin(now / 140) * Math.sin(now / 330);
-      const target = on ? .95 + .35 * wave + amp : 1;
+      const target = state === "listening" ? .95 + .35 * Math.sin(now / 140) * Math.sin(now / 330) + amp : 1;
       const cur = parseFloat(hero.style.getPropertyValue("--a")) || 1;
       setA(hero, cur + (target - cur) * .22);
-      const lineTarget = on ? .5 + .22 * wave + amp : polishing ? .38 : 0;
-      lineLvl += (lineTarget - lineLvl) * (lineTarget > lineLvl ? .2 : .1);
-      lines(now, lineLvl, polishing);
       amp *= .9;
-      if (on || polishing || Math.abs(cur - 1) > .01 || lineLvl > .004) raf = requestAnimationFrame(voiceLoop);
-      else { setA(hero, 1); lineLvl = 0; lines(now, 0, false); raf = 0; }
+      if (state === "listening" || Math.abs(cur - 1) > .01) raf = requestAnimationFrame(voiceLoop);
+      else { setA(hero, 1); raf = 0; }
     }
     const startVoice = () => { if (!raf && !reduceMQ.matches) raf = requestAnimationFrame(voiceLoop); };
 
@@ -284,7 +278,6 @@
         at += reduceMQ.matches ? 0 : 150 + w.length * 34;
         if (i === queue.length - 1) later(() => { if (state === "listening") setStatus("Suelta la tecla para escribir"); }, at + 200);
       });
-      if (reduceMQ.matches) lines(0, .5, false);
       startVoice();
     }
 
@@ -299,7 +292,6 @@
       hint.classList.remove("listening");
       hero.classList.remove("speaking");
       body.classList.add("polishing");
-      if (reduceMQ.matches) lines(0, 0, false);
       $(".listen-caret", body)?.remove();
       setStatus("Puliendo…");
       later(() => {

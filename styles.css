@@ -195,12 +195,10 @@ h3 { font-weight: 600; font-size: 1.375rem; line-height: 1.2; letter-spacing: -.
 .sheet-apps button:hover { background: var(--paper-2); }
 .sheet-apps button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 .sheet-apps img { width: 28px; height: 28px; }
-.sheet-page { position: relative; padding: 20px 26px 26px; }
-.sheet-head, .sheet-body { position: relative; }
+.sheet-page { padding: 20px 26px 26px; }
 /* La voz sube en líneas del borde inferior, igual que en la píldora de la app */
 .voice-lines { position: absolute; left: 0; bottom: 0; width: 100%; height: 100%; pointer-events: none; }
 .voice-lines path { fill: none; stroke: var(--voice); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.sheet-page > .voice-lines { height: 62%; }
 .sheet-head { padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid var(--rule); font-size: .9375rem; color: var(--ink-2); }
 .sheet-head span { color: var(--ink-3); margin-right: 6px; }
 .sheet-body { min-height: 9.6em; font-size: 1.1875rem; line-height: 1.55; font-weight: 450; }
