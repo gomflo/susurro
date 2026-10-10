@@ -203,9 +203,11 @@ h3 { font-weight: 600; font-size: 1.375rem; line-height: 1.2; letter-spacing: -.
 .sheet-head span { color: var(--ink-3); margin-right: 6px; }
 .sheet-body { min-height: 9.6em; font-size: 1.1875rem; line-height: 1.55; font-weight: 450; }
 .sheet-body p + p { margin-top: .7em; }
-.sheet-body .w { display: inline-block; color: transparent; -webkit-text-stroke: .9px var(--voice); font-family: "Jost Voice", var(--sans); font-weight: 600; margin-right: .26em; }
+.sheet-body .w { display: inline-block; color: transparent; -webkit-text-stroke: .9px var(--voice); font-family: "Jost Voice", var(--sans); font-weight: 600; margin-right: .26em; transition: color .35s, -webkit-text-stroke-color .35s; }
+/* A este tamaño el contorno no se lee: la palabra llega hueca y se rellena al asentarse */
+.sheet-body .w.set { color: var(--voice-ink); -webkit-text-stroke-color: transparent; }
 .sheet-body .listen-caret { display: inline-block; width: 2px; height: 1.1em; vertical-align: -.18em; background: var(--voice); animation: blink 1s steps(1) infinite; }
-.sheet-body.polishing .w { -webkit-text-stroke-color: var(--ink-3); transition: -webkit-text-stroke-color .3s; }
+.sheet-body.polishing .w { color: var(--ink-3); -webkit-text-stroke-color: transparent; }
 @keyframes blink { 50% { opacity: 0; } }
 .sheet-foot { display: flex; align-items: center; gap: 18px; padding: 16px 20px; border-top: 2px solid var(--ink); }
 
@@ -436,7 +438,6 @@ h3 { font-weight: 600; font-size: 1.375rem; line-height: 1.2; letter-spacing: -.
   .sheet-page { padding: 14px 18px 16px; }
   .sheet-head { margin-bottom: 12px; padding-bottom: 10px; }
   .sheet-body { min-height: 6.2em; }
-  .sheet-body .w { color: var(--voice-ink); -webkit-text-stroke: 0; }
   .bound-steps text { display: none; }
   .bound-list { display: grid; gap: 6px; margin-top: 16px; padding-left: 1.3em; list-style: decimal; font-weight: 600; }
   .rw-hero { width: calc(100% + 6px); height: auto; }

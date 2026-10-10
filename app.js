@@ -255,7 +255,10 @@
       s.textContent = w;
       caret.before(s);
       amp = .35;
-      if (!reduceMQ.matches) s.animate({ opacity: [0, 1], transform: ["translateY(6px) scale(1.15)", "none"] }, { duration: 260, easing: "cubic-bezier(.16,1,.3,1)" });
+      if (reduceMQ.matches) { s.classList.add("set"); return; }
+      s.animate({ opacity: [0, 1], transform: ["translateY(6px) scale(1.15)", "none"] }, { duration: 260, easing: "cubic-bezier(.16,1,.3,1)" });
+      // No va en `timers`: soltar la tecla no debe dejar palabras a medio rellenar.
+      setTimeout(() => s.classList.add("set"), 420);
     }
 
     function press() {
