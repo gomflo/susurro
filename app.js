@@ -127,27 +127,45 @@
 
   const setA = (el, a) => el.style.setProperty("--a", a.toFixed(3));
 
-  // Las líneas de la voz, con la misma forma que la píldora de la app (src/overlay.rs):
-  // campanas que nacen del borde inferior; la de afuera es la más alta y ancha.
-  // sweep: al pulir, la cresta se angosta y recorre el ancho.
-  function voiceLines(svg, n) {
-    const path = svg.appendChild(document.createElementNS("http://www.w3.org/2000/svg", "path"));
-    let W = 0, H = 0;
-    new ResizeObserver(() => { W = svg.clientWidth; H = svg.clientHeight; }).observe(svg);
+  // La voz como luz, igual que la píldora de la app (src/overlay.rs): manchas
+  // radiales que nacen del borde inferior y un filo que brilla donde lo tocan.
+  // sweep: al pulir, todas siguen a una cresta que recorre el ancho.
+  // Solo se animan transform y opacity: el navegador lo compone sin relayout.
+  const GLOW = ["255 120 102", "255 61 153", "199 77 242", "128 107 255", "255 219 237"];
+  const SLOTS = [-.62, -.2, .22, .6];
+  function voiceGlow(el) {
+    const box = el.appendChild(document.createElement("span"));
+    box.className = "voice-glow";
+    const blobs = GLOW.map((c) => {
+      const b = box.appendChild(document.createElement("i"));
+      b.style.background = `radial-gradient(closest-side, rgb(${c} / .95), rgb(${c} / .45) 45%, rgb(${c} / 0))`;
+      return b;
+    });
+    const rim = box.appendChild(document.createElement("b"));
+    const heights = GLOW.map(() => 0);
+    let W = 0;
+    new ResizeObserver(() => { W = box.clientWidth; }).observe(box);
     return (now, lvl, sweep) => {
-      let d = "";
-      for (let i = 0; i < n; i++) {
-        const k = (i + 1) / n;
+      let total = 0;
+      blobs.forEach((b, i) => {
+        const core = i === GLOW.length - 1;
         const wobble = Math.sin(now * .007 + i * 1.3) * .5 + .5;
-        const a = Math.min(1, lvl * (.8 + .2 * wobble)) * (H - 6) * Math.pow(k, .85);
-        const s = W * (sweep ? .08 + .1 * k : .12 + .16 * k);
-        const cx = W / 2 + (sweep ? Math.sin(now * .0032 - i * .18) * .26 : Math.sin(now * .0011 + i * .45) * .035) * W;
-        for (let j = 0; j <= 48; j++) {
-          const x = W * j / 48, u = (x - cx) / s;
-          d += (j ? "L" : "M") + x.toFixed(1) + " " + (H + 1 - a * Math.exp(-u * u)).toFixed(1);
-        }
-      }
-      path.setAttribute("d", d);
+        // En reposo la píldora se encoge y apaga la luz (.quiet); mientras suena queda un rescoldo.
+        const target = sweep ? .4 + .1 * wobble : Math.max(lvl * (.65 + .35 * wobble), .12 + .06 * wobble);
+        heights[i] += (target - heights[i]) * (target > heights[i] ? .55 : .18);
+        const v = Math.min(1, heights[i] * 1.35);
+        total += v;
+        const x = sweep ? W / 2 + Math.sin(now * .0032 - i * .35) * W * .3
+          : core ? W / 2
+          : W / 2 + (SLOTS[i] + .1 * Math.sin(now * .001 * (.9 + .23 * i) + i * 1.7)) * W / 2;
+        // Base: medio ancho y el doble de alto, centrada en el borde; solo asoma la mitad de arriba.
+        const [w, h, o] = core ? [.3, .12 + .4 * v, .2 + .4 * v]
+          : sweep ? [.34, .3 + .7 * v, .55 + .45 * v]
+          : [.46 + .1 * v, .25 + .6 * v, .4 + .45 * v];
+        b.style.transform = `translateX(${(x - W / 4).toFixed(1)}px) scale(${(w * 2).toFixed(3)}, ${h.toFixed(3)})`;
+        b.style.opacity = o.toFixed(3);
+      });
+      rim.style.opacity = (.3 + .7 * total / GLOW.length).toFixed(3);
     };
   }
   function tweenA(el, from, to, ms) {
@@ -559,18 +577,18 @@
     addEventListener("resize", () => reduce && still());
 
     // La píldora de la galera: escucha, pule (cresta que recorre) y vuelve a reposo.
-    const pillLines = voiceLines($("svg", pill), 4);
+    const pillGlow = voiceGlow(pill);
     let pillLvl = 0;
     (function pillLoop(now) {
       requestAnimationFrame(pillLoop);
-      if (reduce) { if (pillLvl) pillLines(0, pillLvl = 0, false); return; }
+      if (reduce) { if (pillLvl) pillGlow(0, pillLvl = 0, false); return; }
       if (halted()) return;
       const quiet = pill.classList.contains("quiet"), polishing = pill.classList.contains("polishing");
       if (quiet && !pillLvl) return;
       const target = quiet ? 0 : polishing ? .5 : .6 + .35 * Math.sin(now / 140) * Math.sin(now / 330);
       pillLvl += (target - pillLvl) * .15;
       if (quiet && pillLvl < .004) pillLvl = 0;
-      pillLines(now, pillLvl, polishing);
+      pillGlow(now, pillLvl, polishing);
     })(0);
 
     document.fonts.ready.then(() => start(0));
