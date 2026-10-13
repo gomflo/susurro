@@ -1,596 +1,589 @@
-// Susurro · landing. JavaScript sin dependencias; sin él, la página se lee completa.
+/* Susurro: la píldora, la luz y el movimiento del sitio.
+   Un solo reloj (gsap.ticker) mueve el scroll, la luz y los dictados. */
 (() => {
+  "use strict";
+
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-  const NS = "http://www.w3.org/2000/svg";
-  const reduceMQ = matchMedia("(prefers-reduced-motion: reduce)");
-  const easeOut = (t) => 1 - Math.pow(1 - t, 4);
+  const root = document.documentElement;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const G = window.gsap;
+  const ST = window.ScrollTrigger;
+  // Sin GSAP el sitio sigue completo: nada queda escondido esperando un revelado.
+  if (!G || !ST) root.classList.remove("motion");
+  const motion = root.classList.contains("motion");
+  if (G && ST) G.registerPlugin(ST, ...(window.SplitText ? [window.SplitText] : []));
 
-  /* ---------------- navegación ---------------- */
-  const nav = $("#nav"), menu = $("#navMenu"), links = $("#navLinks");
-  const onScroll = () => nav.classList.toggle("scrolled", scrollY > 8);
-  addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
-  const setMenu = (open) => { menu.setAttribute("aria-expanded", String(open)); links.classList.toggle("open", open); };
-  menu.addEventListener("click", () => setMenu(menu.getAttribute("aria-expanded") !== "true"));
-  links.addEventListener("click", (e) => { if (e.target.closest("a")) setMenu(false); });
-  addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(false); });
-
-  // Marca en el menú la sección que ocupa el tercio superior.
-  const navMap = new Map($$("a", links).map((a) => [a.hash.slice(1), a]));
-  const spy = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      const a = navMap.get(e.target.id);
-      if (a && e.isIntersecting) { navMap.forEach((x) => x.removeAttribute("aria-current")); a.setAttribute("aria-current", "true"); }
-    }
-  }, { rootMargin: "-30% 0px -65% 0px" });
-  navMap.forEach((_, id) => { const s = document.getElementById(id); if (s) spy.observe(s); });
-
-  /* ---------------- pestañas ---------------- */
-  $$("[data-tabs]").forEach((box) => {
-    const tabs = $$('[role="tab"]', box);
-    const select = (tab, focus) => {
-      tabs.forEach((t) => {
-        const on = t === tab;
-        t.setAttribute("aria-selected", String(on));
-        t.tabIndex = on ? 0 : -1;
-        document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
-      });
-      if (focus) tab.focus();
-    };
-    tabs.forEach((t, i) => {
-      t.addEventListener("click", () => select(t));
-      t.addEventListener("keydown", (e) => {
-        const map = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 };
-        if (!(e.key in map)) return;
-        e.preventDefault();
-        select(tabs[(map[e.key] + tabs.length) % tabs.length], true);
-      });
-    });
-  });
-
-  /* ---------------- tu tecla ---------------- */
-  // La tecla de dictado se elige en la app (fn o un modificador derecho); aquí se refleja en toda la página.
-  const KEYS = {
-    fn: { sym: "fn", word: "", note: "La de fábrica. Cámbiala en Ajustes." },
-    option: { sym: "⌥", word: "option", note: "⌥ del lado derecho, en lugar de fn." },
-    command: { sym: "⌘", word: "command", note: "⌘ del lado derecho, en lugar de fn." },
-    control: { sym: "⌃", word: "control", note: "⌃ del lado derecho, en lugar de fn." },
-    shift: { sym: "⇧", word: "shift", note: "⇧ del lado derecho, en lugar de fn." },
+  const ticker = {
+    add(fn) {
+      if (G) return G.ticker.add(fn);
+      const loop = (ms) => { fn(ms / 1000); requestAnimationFrame(loop); };
+      requestAnimationFrame(loop);
+    },
   };
-  const picks = $$("[data-pick]");
-  function setKey(id, focus) {
-    const k = KEYS[id];
-    picks.forEach((b) => {
-      const on = b.dataset.pick === id;
-      b.setAttribute("aria-checked", String(on));
-      b.tabIndex = on ? 0 : -1;
-      if (on && focus) b.focus();
-    });
-    $$("[data-key]").forEach((el) => (el.textContent = k.sym));
-    const label = $("#fnLabel"), word = $("#fnWord"), globe = $("#fnGlobe"), note = $("#keyPickNote");
-    if (label) label.textContent = k.sym;
-    if (word) { word.textContent = k.word; word.hidden = !k.word; }
-    if (globe) globe.style.display = k.word ? "none" : "";
-    if (note) note.textContent = k.note;
+
+  /* ---------- Scroll ---------- */
+
+  let lenis = null;
+  const scrollFns = new Set();
+  const scroll = { y: scrollY, v: 0 };
+  const publish = () => scrollFns.forEach((fn) => fn(scroll));
+  if (motion && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.1, touchMultiplier: 1.2 });
+    lenis.on("scroll", (l) => { scroll.y = l.scroll; scroll.v = l.velocity; ST.update(); publish(); });
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  } else {
+    addEventListener("scroll", () => { scroll.v = scrollY - scroll.y; scroll.y = scrollY; publish(); }, { passive: true });
   }
-  picks.forEach((b, i) => {
-    b.addEventListener("click", () => setKey(b.dataset.pick));
-    b.addEventListener("keydown", (e) => {
-      const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
-      if (!step) return;
-      e.preventDefault();
-      setKey(picks[(i + step + picks.length) % picks.length].dataset.pick, true);
-    });
+
+  // Anclas: con Lenis el salto es suave, y el foco siempre llega al destino.
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    const id = a.getAttribute("href");
+    const target = id.length > 1 && document.getElementById(id.slice(1));
+    if (!target) return;
+    e.preventDefault();
+    closeMenu(false);
+    if (lenis) lenis.scrollTo(target, { duration: 1.3, easing: (t) => 1 - Math.pow(1 - t, 4) });
+    else target.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+    if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+    target.focus({ preventScroll: true });
+    history.pushState(null, "", id);
   });
 
-  /* ---------------- letras de anillos ---------------- */
-  // Cada palabra se pinta varias veces con trazos de grosor decreciente, tinta y papel alternados:
-  // quedan líneas concéntricas alrededor de la letra. --a abre o cierra los anillos.
-  let uid = 0;
-  function ringWord(svg) {
-    const src = $(".rw-src", svg);
-    if (!src) return;
-    const n = Number(svg.dataset.rings) || 3;
-    const id = `rw${++uid}`;
-    src.id = id;
-    const defs = document.createElementNS(NS, "defs");
-    defs.append(src);
-    const g = document.createElementNS(NS, "g");
-    g.setAttribute("class", "rw-g");
-    const use = (cls, k) => {
-      const u = document.createElementNS(NS, "use");
-      u.setAttribute("href", `#${id}`);
-      u.setAttribute("class", cls);
-      u.style.setProperty("--k", k);
-      return u;
-    };
-    for (let k = n; k >= 1; k--) g.append(use("ring", k), use("gap", k));
-    g.append(use("core", 0));
-    svg.prepend(defs);
-    svg.append(g);
-    svg._fit = () => {
-      const b = src.getBBox();
-      const gap = parseFloat(getComputedStyle(svg).getPropertyValue("--g")) || 14;
-      const pad = n * gap + 6;
-      svg.setAttribute("viewBox", `${(b.x - pad).toFixed(1)} ${(b.y - pad).toFixed(1)} ${(b.width + 2 * pad).toFixed(1)} ${(b.height + 2 * pad).toFixed(1)}`);
-    };
+  /* ---------- Menú en teléfono ---------- */
+
+  const menuBtn = $("#menuBtn");
+  const nav = $("#nav");
+  function closeMenu(restore = true) {
+    if (!root.classList.contains("menu-open")) return;
+    root.classList.remove("menu-open");
+    menuBtn.setAttribute("aria-expanded", "false");
+    lenis?.start();
+    if (restore) menuBtn.focus();
   }
-  const words = $$(".rw");
-  words.forEach(ringWord);
-  // Se ajusta ya, en el mismo cuadro en que aparecen los anillos: esperar a fonts.ready deja
-  // pintar un cuadro con el viewBox del HTML y la palabra se ve más grande. Luego se reajusta
-  // por si la fuente llegó después.
-  const fitWords = () => words.forEach((w) => w._fit && w._fit());
-  fitWords();
-  document.fonts.ready.then(fitWords);
+  menuBtn?.addEventListener("click", () => {
+    if (root.classList.contains("menu-open")) return closeMenu();
+    root.classList.add("menu-open");
+    menuBtn.setAttribute("aria-expanded", "true");
+    lenis?.stop();
+    $("a", nav).focus();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (!root.classList.contains("menu-open")) return;
+    if (e.key === "Escape") return closeMenu();
+    if (e.key !== "Tab") return;
+    const stops = [...$$("a", nav), menuBtn];
+    const i = stops.indexOf(document.activeElement);
+    const next = e.shiftKey ? (i <= 0 ? stops.length - 1 : i - 1) : (i === stops.length - 1 ? 0 : i + 1);
+    e.preventDefault();
+    stops[next].focus();
+  });
 
-  const setA = (el, a) => el.style.setProperty("--a", a.toFixed(3));
+  /* ---------- El encabezado y la píldora se apartan al bajar ---------- */
 
-  // La voz como luz, igual que la píldora de la app (src/overlay.rs): manchas
-  // radiales que nacen del borde inferior y un filo que brilla donde lo tocan.
-  // sweep: al pulir, todas siguen a una cresta que recorre el ancho.
-  // Solo se animan transform y opacity: el navegador lo compone sin relayout.
-  const GLOW = ["255 120 102", "255 61 153", "199 77 242", "128 107 255", "255 219 237"];
-  const SLOTS = [-.62, -.2, .22, .6];
-  function voiceGlow(el) {
-    const box = el.appendChild(document.createElement("span"));
-    box.className = "voice-glow";
-    const blobs = GLOW.map((c) => {
-      const b = box.appendChild(document.createElement("i"));
-      b.style.background = `radial-gradient(closest-side, rgb(${c} / .95), rgb(${c} / .45) 45%, rgb(${c} / 0))`;
-      return b;
-    });
-    const rim = box.appendChild(document.createElement("b"));
-    const heights = GLOW.map(() => 0);
-    let W = 0;
-    new ResizeObserver(() => { W = box.clientWidth; }).observe(box);
-    return (now, lvl, sweep) => {
-      let total = 0;
-      blobs.forEach((b, i) => {
-        const core = i === GLOW.length - 1;
-        const wobble = Math.sin(now * .007 + i * 1.3) * .5 + .5;
-        // En reposo la píldora se encoge y apaga la luz (.quiet); mientras suena queda un rescoldo.
-        const target = sweep ? .4 + .1 * wobble : Math.max(lvl * (.65 + .35 * wobble), .12 + .06 * wobble);
-        heights[i] += (target - heights[i]) * (target > heights[i] ? .55 : .18);
-        const v = Math.min(1, heights[i] * 1.35);
-        total += v;
-        const x = sweep ? W / 2 + Math.sin(now * .0032 - i * .35) * W * .3
-          : core ? W / 2
-          : W / 2 + (SLOTS[i] + .1 * Math.sin(now * .001 * (.9 + .23 * i) + i * 1.7)) * W / 2;
-        // Base: medio ancho y el doble de alto, centrada en el borde; solo asoma la mitad de arriba.
-        const [w, h, o] = core ? [.3, .12 + .4 * v, .2 + .4 * v]
-          : sweep ? [.34, .3 + .7 * v, .55 + .45 * v]
-          : [.46 + .1 * v, .25 + .6 * v, .4 + .45 * v];
-        b.style.transform = `translateX(${(x - W / 4).toFixed(1)}px) scale(${(w * 2).toFixed(3)}, ${h.toFixed(3)})`;
-        b.style.opacity = o.toFixed(3);
+  let lastY = scroll.y;
+  scrollFns.add(({ y }) => {
+    if (Math.abs(y - lastY) < 6 || root.classList.contains("menu-open")) return;
+    const away = y > 240 && y > lastY;
+    root.classList.toggle("frame-away", away);
+    root.classList.toggle("scrolled", y > 40);
+    lastY = y;
+    refreshPill();
+    pickContext();
+  });
+
+  /* ---------- Revelados: suben como luz, se asientan como tinta ---------- */
+
+  const intro = G ? G.timeline({ paused: true }) : null;
+  if (motion) {
+    const SplitText = window.SplitText;
+    $$("[data-split]").forEach((el) => {
+      const isIntro = el.hasAttribute("data-intro");
+      const delay = parseFloat(el.dataset.delay || "0");
+      if (!SplitText) { G.set(el, { visibility: "visible" }); return; }
+      const s = { done: false, requested: false, tl: null };
+      SplitText.create(el, {
+        type: "lines", mask: "lines", autoSplit: true, linesClass: "split-line",
+        onSplit(self) {
+          G.set(el, { visibility: "visible" });
+          if (s.done) return;
+          s.tl = G.timeline({
+            delay,
+            paused: isIntro && !s.requested,
+            onComplete: () => { s.done = true; },
+            scrollTrigger: isIntro ? undefined : { trigger: el, start: "top 88%", once: true },
+          })
+            .from(self.lines, { yPercent: 110, rotate: 1.5, duration: 1.2, stagger: 0.08, ease: "expo.out" }, 0)
+            .from(self.lines, { color: "#FF3D99", duration: 1.6, stagger: 0.08, ease: "power2.out", clearProps: "color" }, 0.1);
+          return s.tl;
+        },
       });
-      rim.style.opacity = (.3 + .7 * total / GLOW.length).toFixed(3);
-    };
-  }
-  function tweenA(el, from, to, ms) {
-    const t0 = performance.now();
-    const step = (now) => {
-      const t = Math.min(1, (now - t0) / ms);
-      setA(el, from + (to - from) * easeOut(t));
-      if (t < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }
-
-  // Los anillos de los números y del cierre se abren una vez, al entrar en pantalla.
-  if (!reduceMQ.matches) {
-    const enter = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (!e.isIntersecting) continue;
-        enter.unobserve(e.target);
-        tweenA(e.target, 0, 1, 1400);
-      }
-    }, { rootMargin: "0px 0px -15% 0px" });
-    $$(".rw-num, .rw-final").forEach((w) => {
-      if (w.getBoundingClientRect().top < innerHeight * .85) return;
-      setA(w, 0);
-      enter.observe(w);
+      if (isIntro) intro.add(() => { s.requested = true; s.tl?.play(); }, 0);
     });
+
+    $$("[data-reveal]").forEach((el) => {
+      const isIntro = el.hasAttribute("data-intro");
+      const kind = el.dataset.reveal || "up";
+      const delay = parseFloat(el.dataset.delay || "0");
+      const from = kind === "fade" ? { autoAlpha: 0, y: 24 }
+        : kind === "clip" ? { clipPath: "inset(100% 0% 0% 0%)", autoAlpha: 1 }
+        : { y: 40, autoAlpha: 0 };
+      const to = { y: 0, autoAlpha: 1, duration: kind === "fade" ? 1.4 : 1.2, ease: "expo.out", delay, paused: isIntro };
+      // Al terminar, sin recorte: la sombra y las esquinas de la captura vuelven a verse.
+      if (kind === "clip") { to.clipPath = "inset(0% 0% 0% 0%)"; to.clearProps = "clipPath"; }
+      if (!isIntro) to.scrollTrigger = { trigger: el, start: "top 90%", once: true };
+      const tw = G.fromTo(el, from, to);
+      if (isIntro) intro.add(() => tw.play(), 0);
+    });
+
+    // «Habla.» llega primero, como luz.
+    const said = $(".hero-said");
+    // Visible desde el primer cuadro (es el LCP): solo se asienta.
+    if (said) intro.add(G.from(said, { yPercent: 14, scale: 0.97, transformOrigin: "0% 100%", duration: 1.4, ease: "expo.out" }), 0);
+    requestAnimationFrame(() => { ST.refresh(); intro.play(); });
   }
 
-  /* ---------------- privacidad: ondas que no cruzan el borde ---------------- */
-  const bound = $("#bound"), ringsG = $("#boundRings");
-  if (bound && ringsG) {
-    for (let i = 1; i <= 14; i++) {
-      const c = document.createElementNS(NS, "circle");
-      c.setAttribute("cx", "96"); c.setAttribute("cy", "170"); c.setAttribute("r", String(i * 36));
-      c.style.transitionDelay = `${i * 70}ms`;
-      ringsG.append(c);
+  /* ---------- La luz ---------- */
+
+  const SLOTS = [-0.62, -0.2, 0.22, 0.6];
+  const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+  function makeGlow(el) {
+    el.innerHTML = "<i></i><i></i><i></i><i></i><i></i><b></b>";
+    const g = { el, blobs: $$("i", el), rim: $("b", el), h: [0, 0, 0, 0, 0], w: 0, ht: 0 };
+    g.measure = () => { g.w = el.clientWidth; g.ht = el.clientHeight; };
+    g.measure();
+    return g;
+  }
+
+  // levels: cinco alturas 0..1. o: { cx, spread, scale, alpha, rim, t }.
+  function drawGlow(g, levels, o) {
+    const half = g.w / 2;
+    const cx = o.cx ?? half;
+    const inner = half * (o.spread ?? 1);
+    let sum = 0;
+    for (let i = 0; i < 5; i++) {
+      const target = levels[i];
+      g.h[i] += (target - g.h[i]) * (target > g.h[i] ? 0.55 : 0.18);
+      const v = Math.min(g.h[i] * 1.35, 1);
+      sum += v;
+      let x, w, h, op;
+      if (i < 4) {
+        x = cx + (SLOTS[i] + Math.sin(o.t * 0.9 + i * 1.7) * 0.05) * inner;
+        w = inner * (0.95 + 0.2 * v);
+        h = 2 * g.ht * (0.25 + 0.6 * v) * (o.scale ?? 1);
+        op = 0.4 + 0.45 * v;
+      } else {
+        x = cx;
+        w = inner * 0.6;
+        h = 2 * g.ht * (0.12 + 0.4 * v) * (o.scale ?? 1);
+        op = 0.2 + 0.4 * v;
+      }
+      op *= smooth(0.004, 0.12, v) * (o.alpha ?? 1);
+      const b = g.blobs[i];
+      b.style.transform = `translate3d(${(x - 50).toFixed(1)}px,0,0) scale(${(w / 100).toFixed(3)},${(h / 100).toFixed(3)})`;
+      b.style.opacity = op.toFixed(3);
     }
-    new IntersectionObserver(([e], o) => {
-      if (e.isIntersecting) { bound.classList.add("on"); o.disconnect(); }
-    }, { threshold: .35 }).observe(bound);
+    g.rim.style.opacity = ((0.3 + 0.7 * sum / 5) * (o.rim ?? 1)).toFixed(3);
   }
 
-  /* ---------------- hero: la tecla fn dicta ---------------- */
+  const voiceEl = $("#voice");
+  const pill = $("#pill");
+  const pillText = $("#pillText");
+  const pillStatus = $("#pillStatus");
+  const edge = makeGlow($("#edge"));
+  const pillGlow = makeGlow($("#pillGlow"));
+  const screenEl = $("#screenGlow");
+  const screenGlow = screenEl ? makeGlow(screenEl) : null;
+  addEventListener("resize", () => { edge.measure(); screenGlow?.measure(); placeMark(); });
+
+  const voice = { level: 0, target: 0 };
+  const pointer = { x: 0, aim: 0 };
+  if (fine && !reduced) addEventListener("pointermove", (e) => { pointer.aim = e.clientX / innerWidth - 0.5; }, { passive: true });
+
+  /* ---------- Dictados de ejemplo ---------- */
+
   const EX = [
     {
-      app: "Mail", head: "<span>Para</span>Laura Méndez",
+      app: "Mail", head: "<span>Para</span> Laura Méndez",
       raw: "eh hola Laura este quería ver si podemos mover la junta al martes no mejor al jueves a las diez y pues ahí revisamos el presupuesto",
       out: ["Hola, Laura:", "¿Podemos mover la junta al jueves a las 10:00? Ahí revisamos el presupuesto."],
-      said: "Hola, Laura: ¿Podemos mover la junta al jueves a las 10:00? Ahí revisamos el presupuesto.",
     },
     {
       app: "Slack", head: "<span>#</span>lanzamiento",
       raw: "o sea ya quedó el deploy eh nada más falta que jimena revise los textos y lo anunciamos",
       out: ["Ya quedó el deploy. Nada más falta que Ximena revise los textos y lo anunciamos."],
-      said: "Ya quedó el deploy. Nada más falta que Ximena revise los textos y lo anunciamos.",
     },
     {
-      app: "Mensajes", head: "<span>Para</span>Diego",
+      app: "Mensajes", head: "<span>Para</span> Diego",
       raw: "ya voy saliendo llego como en quince minutos mmm si quieres pide tú los tacos",
       out: ["Ya voy saliendo, llego en unos 15 minutos. Si quieres, pide tú los tacos."],
-      said: "Ya voy saliendo, llego en unos 15 minutos. Si quieres, pide tú los tacos.",
     },
     {
-      app: "Cursor", head: "<span>Chat</span>auth.ts",
+      app: "Cursor", head: "<span>Chat</span> auth.ts",
       raw: "haz que la función de login regrese un error si el correo viene vacío",
       out: ["Haz que <code>login()</code> regrese un error si <code>email</code> viene vacío."],
-      said: "Haz que login() regrese un error si email viene vacío.",
     },
   ];
+  const CMDS = [
+    { raw: "hazlo más formal", out: "Mañana no me será posible. ¿Podríamos revisarlo el lunes?", next: "Ahora pide «tradúcelo al inglés»." },
+    { raw: "tradúcelo al inglés", out: "I can’t make it tomorrow. Could we go over it on Monday?", next: "Ahora pide «hazlo casual otra vez»." },
+    { raw: "hazlo casual otra vez", out: "nel, mañana no puedo, ¿lo vemos el lunes?", next: "Mantenla y pide «hazlo más formal»." },
+  ];
+  const SCRIPTS = {
+    hero: () => ({ ...EX[app], target: "hero" }),
+    tones: () => ({ raw: "oye no voy a llegar a la junta de las nueve se me complicó algo la movemos a la tarde", target: "tones" }),
+    command: () => ({ ...CMDS[cmd], target: "command", mode: "cmd" }),
+    final: () => ({ raw: "eh ya me convenciste lo voy a descargar", out: ["Ya me convenciste, lo voy a descargar."] }),
+    home: () => ({ raw: "eh llévame al inicio", target: "home" }),
+    none: () => ({ raw: "eh nos vemos el martes no mejor el jueves a las diez", out: ["Nos vemos el jueves a las 10:00."] }),
+  };
+  const plain = (html) => html.replace(/<[^>]+>/g, "");
 
-  const demo = $("#demo");
-  if (demo) {
-    const key = $("#fnKey"), body = $("#sheetBody"), head = $("#sheetHead"), status = $("#fnStatus"), hint = $("#fnHint");
-    const hero = $("#heroWord");
-    const appBtns = $$("[data-ex]", demo);
-    let ex = 0, state = "idle", timers = [], queue = [], amp = 0, raf = 0, autoplay = true;
-    const IDLE = "Mantén presionada la tecla para dictar";
-
-    const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
-    const later = (fn, ms) => timers.push(setTimeout(fn, ms));
-    const setStatus = (t) => { status.textContent = t; };
-
-    function showDone(i) {
-      const e = EX[i];
-      head.innerHTML = e.head;
-      body.classList.remove("polishing");
-      body.innerHTML = e.out.map((p) => `<p>${p}</p>`).join("");
-    }
-
-    // La onda de la voz: los anillos de «Habla.» respiran con lo que dices.
-    function voiceLoop(now) {
-      const target = state === "listening" ? .95 + .35 * Math.sin(now / 140) * Math.sin(now / 330) + amp : 1;
-      const cur = parseFloat(hero.style.getPropertyValue("--a")) || 1;
-      setA(hero, cur + (target - cur) * .22);
-      amp *= .9;
-      if (state === "listening" || Math.abs(cur - 1) > .01) raf = requestAnimationFrame(voiceLoop);
-      else { setA(hero, 1); raf = 0; }
-    }
-    const startVoice = () => { if (!raf && !reduceMQ.matches) raf = requestAnimationFrame(voiceLoop); };
-
-    function addWord(w) {
-      const caret = $(".listen-caret", body);
-      const s = document.createElement("span");
-      s.className = "w";
-      s.textContent = w;
-      caret.before(s);
-      amp = .35;
-      if (reduceMQ.matches) { s.classList.add("set"); return; }
-      s.animate({ opacity: [0, 1], transform: ["translateY(6px) scale(1.15)", "none"] }, { duration: 260, easing: "cubic-bezier(.16,1,.3,1)" });
-      // No va en `timers`: soltar la tecla no debe dejar palabras a medio rellenar.
-      setTimeout(() => s.classList.add("set"), 420);
-    }
-
-    function press() {
-      if (state === "listening" || state === "polishing") return;
-      clearTimers();
-      autoplay = false;
-      state = "listening";
-      key.classList.add("down");
-      hint.classList.add("listening");
-      hero.classList.add("speaking");
-      setStatus("Escuchando… suelta para escribir");
-      const e = EX[ex];
-      head.innerHTML = e.head;
-      body.classList.remove("polishing");
-      body.innerHTML = '<p><span class="listen-caret"></span></p>';
-      queue = e.raw.split(" ");
-      let at = 120;
-      queue.forEach((w, i) => {
-        later(() => { queue.shift(); addWord(w); }, at);
-        at += reduceMQ.matches ? 0 : 150 + w.length * 34;
-        if (i === queue.length - 1) later(() => { if (state === "listening") setStatus("Suelta la tecla para escribir"); }, at + 200);
-      });
-      startVoice();
-    }
-
-    function release() {
-      if (state !== "listening") return;
-      clearTimers();
-      // Lo que faltaba de la frase llega de golpe: el modelo ya lo había oído.
-      queue.forEach(addWord);
-      queue = [];
-      state = "polishing";
-      key.classList.remove("down");
-      hint.classList.remove("listening");
-      hero.classList.remove("speaking");
-      body.classList.add("polishing");
-      $(".listen-caret", body)?.remove();
-      setStatus("Puliendo…");
-      later(() => {
-        const e = EX[ex];
-        const ws = $$(".w", body);
-        if (reduceMQ.matches) { finish(); return; }
-        ws.forEach((w, i) => w.animate({ opacity: [1, 0], filter: ["blur(0)", "blur(4px)"] }, { duration: 220, delay: i * 12, fill: "forwards" }));
-        later(finish, 220 + ws.length * 12);
-        function finish() {
-          showDone(ex);
-          if (!reduceMQ.matches) $$("p", body).forEach((p, i) => p.animate({ opacity: [0, 1], filter: ["blur(6px)", "blur(0)"], transform: ["translateY(6px)", "none"] }, { duration: 520, delay: i * 90, easing: "cubic-bezier(.16,1,.3,1)", fill: "backwards" }));
-          state = "idle";
-          setStatus(`Listo. Se escribió en ${e.app}: «${e.said}»`);
-          later(() => { if (state === "idle") setStatus(IDLE); }, 6000);
-        }
-      }, reduceMQ.matches ? 0 : 520);
-    }
-
-    key.addEventListener("pointerdown", (e) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      key.setPointerCapture?.(e.pointerId);
-      key.focus({ preventScroll: true });
-      press();
-    });
-    ["pointerup", "pointercancel", "lostpointercapture"].forEach((t) => key.addEventListener(t, release));
-    key.addEventListener("keydown", (e) => {
-      if (e.key !== " " && e.key !== "Enter") return;
-      e.preventDefault();
-      if (!e.repeat) press();
-    });
-    key.addEventListener("keyup", (e) => { if (e.key === " " || e.key === "Enter") release(); });
-    key.addEventListener("blur", release);
-    key.addEventListener("contextmenu", (e) => e.preventDefault());
-    key.addEventListener("click", (e) => e.preventDefault());
-
-    appBtns.forEach((b) => b.addEventListener("click", () => {
-      if (state === "listening" || state === "polishing") return;
-      clearTimers();
-      autoplay = false;
-      ex = Number(b.dataset.ex);
-      appBtns.forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-      showDone(ex);
-      setStatus(IDLE);
-    }));
-
-    // Una sola vez al cargar, la tecla se presiona sola para mostrar el gesto.
-    if (!reduceMQ.matches) {
-      const io = new IntersectionObserver(([e], o) => {
-        if (!e.isIntersecting) return;
-        o.disconnect();
-        later(() => {
-          if (!autoplay) return;
-          press();
-          autoplay = false;
-          const total = EX[0].raw.split(" ").reduce((t, w) => t + 150 + w.length * 34, 120);
-          later(release, total + 450);
-        }, 900);
-      }, { threshold: .6 });
-      document.fonts.ready.then(() => io.observe(demo));
-    }
+  // La sección de la que habla la píldora: la que cruza el centro de la pantalla.
+  const dictateSections = $$("[data-dictate]");
+  let context = dictateSections[0]?.dataset.dictate || "none";
+  function pickContext() {
+    const mid = innerHeight * 0.55;
+    const hit = dictateSections.find((s) => { const r = s.getBoundingClientRect(); return r.top <= mid && r.bottom >= mid; });
+    const next = hit ? hit.dataset.dictate : "none";
+    if (next === context) return;
+    context = next;
+    // El ejemplo automático es solo para el primer vistazo.
+    if (dict?.source === "auto") cancel("");
+    if (!dict) voiceEl.classList.toggle("cmd", context === "command");
+    refreshPill();
   }
 
-  /* ---------------- galera de corrección ---------------- */
-  const galera = $("#galera");
-  if (galera) {
-    const stage = $(".gl-stage"), lineEl = $("#glLine"), marksEl = $("#glMarks"), notesEl = $("#glNotes"), pill = $("#glPill"), clock = $("#glClock");
-    const pauseBtn = $("#glPause"), pauseLabel = $("#glPauseLabel");
+  let app = 0;
+  let cmd = 0;
+  let dict = null;      // dictado en curso
+  let phase = "rest";   // rest | listening | processing | message
+  let messageUntil = 0;
+  let live = "";
 
-    // r: lo dicho; c: lo escrito (sin c, se queda igual; en muletillas y autocorrecciones, desaparece).
-    // mark: la marca de corrector. caret = signo de inserción con el carácter que falta.
-    const LINES = [
-      [{ r: "eh", t: "fill", mark: "oval", note: "muletilla" }, { r: "ya", c: "Ya" }, "quedó", "la", "presentación", "para", "el",
-        { r: "cliente", c: "cliente.", t: "punct", mark: "caret", note: "." }],
-      [{ r: "se", c: "Se" }, "la", "mando", "el", { r: "martes no mejor el", t: "fix", mark: "strike", note: "autocorrección" }, { r: "jueves", t: "fix" },
-        "a", "las", { r: "diez", c: "10:00.", t: "punct", mark: "under", note: "10:00" }],
-      [{ r: "o sea", t: "fill", mark: "oval", note: "muletilla" }, { r: "le", c: "Le" }, "pido", "a", { r: "jimena", c: "Ximena", t: "dict", mark: "wave", note: "Ximena" },
-        "que", "cheque", "los", { r: "números", c: "números.", t: "punct", mark: "caret", note: "." }],
-      [{ r: "y", c: "Y" }, "si", "puedes", { r: "este", t: "fill", mark: "oval", note: "muletilla" }, "mándamela", { r: "antes", c: "antes,", t: "punct", mark: "caret", note: "," },
-        { r: "por favor", c: "por favor.", t: "punct", mark: "caret", note: "." }],
-    ];
-    const STATIC_LINE = 1;
+  const say = (text) => { pillStatus.textContent = text; };
 
-    let reduce = reduceMQ.matches, paused = false, visible = false, gen = 0;
+  function refreshPill() {
+    let text = "";
+    if (phase === "listening") text = live ? (live.length > 44 ? "…" + live.slice(-43) : live) : "Escuchando…";
+    else if (phase === "message") text = pillMsg;
+    else if (phase === "rest") text = context === "command" ? "Mantén para el comando" : "Mantén para dictar";
+    if (pillText.textContent !== text) pillText.textContent = text;
+    pill.classList.toggle("is-on", phase !== "rest");
+    if (!dict) voiceEl.classList.toggle("cmd", context === "command");
+    // Fuera de las secciones con ventana, la píldora reposa pequeña para no tapar texto.
+    const roomy = ["hero", "command", "final", "home"].includes(context) && !root.classList.contains("frame-away");
+    const mini = phase === "rest" && !roomy && document.activeElement !== pill && !pill.matches(":hover");
+    pill.classList.toggle("is-mini", mini);
+  }
+  let pillMsg = "";
+  function message(text, ms = 2600) {
+    phase = "message";
+    pillMsg = text;
+    messageUntil = performance.now() + ms;
+    say(text);
+    refreshPill();
+  }
 
-    // Todo se mueve con Web Animations: así pausar es pausar las animaciones del escenario, esperas incluidas.
-    const anim = (el, kf, o) => el.animate(kf, { fill: "both", easing: "cubic-bezier(.2,.8,.2,1)", ...o });
-    const sleep = (ms) => clock.animate({ opacity: [0, 0] }, { duration: ms }).finished.catch(() => {});
-    // Web Animations no resuelve bien var() en todos los navegadores: se pasa el color ya calculado.
-    const rgb = (el, v) => { const p = document.createElement("i"); p.style.color = v; el.append(p); const c = getComputedStyle(p).color; p.remove(); return c; };
-    const halted = () => paused || !visible;
-    function applyHalt() {
-      for (const a of stage.getAnimations({ subtree: true })) {
-        if (halted() && a.playState === "running") a.pause();
-        else if (!halted() && a.playState === "paused") a.play();
-      }
+  function start(source) {
+    if (dict && dict.source === "auto") { dict = null; }
+    if (dict || phase === "processing") return;
+    const script = SCRIPTS[context] ? SCRIPTS[context]() : SCRIPTS.none();
+    dict = { source, script, words: script.raw.split(" "), i: 0, next: performance.now() + 260, ctx: context };
+    voiceEl.classList.toggle("cmd", script.mode === "cmd");
+    phase = "listening";
+    live = "";
+    voice.target = 0.2;
+    say(script.mode === "cmd" ? "Escuchando en modo comando." : "Escuchando.");
+    refreshPill();
+    if (script.target === "hero") showCaret();
+  }
+
+  function cancel(text = "Cancelado") {
+    if (!dict) return;
+    dict = null;
+    voice.target = 0;
+    if (text) message(text, 1600);
+    else { phase = "rest"; refreshPill(); }
+    restoreHero();
+  }
+
+  function stop() {
+    if (!dict) return;
+    const d = dict;
+    dict = null;
+    voice.target = 0;
+    if (d.i < Math.ceil(d.words.length * 0.5)) {
+      message("Sigue hablando: suelta al terminar la frase");
+      restoreHero();
+      return;
     }
+    phase = "processing";
+    say("Puliendo.");
+    refreshPill();
+    setTimeout(() => write(d), reduced ? 120 : 520);
+  }
 
-    function build(spec) {
-      lineEl.replaceChildren(); marksEl.replaceChildren(); notesEl.replaceChildren();
-      lineEl.classList.remove("heard");
-      lineEl.getAnimations().forEach((a) => a.cancel());
-      return spec.map((raw, i) => {
-        const tk = typeof raw === "string" ? { r: raw } : { ...raw };
-        tk.c ??= tk.t === "fill" || (tk.t === "fix" && tk.mark) ? "" : tk.r;
-        const sp = i < spec.length - 1 ? " " : "";
-        const el = document.createElement("span");
-        el.className = "tk";
-        if (tk.t) el.dataset.t = tk.t;
-        el.innerHTML = '<span class="r"><span class="core"></span></span><span class="c"></span>';
-        $(".core", el).textContent = tk.r;
-        $(".r", el).append(sp);
-        $(".c", el).textContent = tk.c ? tk.c + sp : "";
-        lineEl.append(el);
-        return { ...tk, el, rEl: $(".r", el), cEl: $(".c", el), core: $(".core", el) };
+  function write(d) {
+    const s = d.script;
+    phase = "rest";
+    if (s.target === "hero") {
+      body.innerHTML = s.out.map((p) => `<p class="fresh">${p}</p>`).join("");
+      say(`Se escribió en ${s.app}: ${plain(s.out.join(" "))}`);
+      refreshPill();
+    } else if (s.target === "command") {
+      const t = $("#cmdText");
+      t.textContent = s.out;
+      t.classList.remove("fresh"); void t.offsetWidth; t.classList.add("fresh");
+      $("#cmdCap").textContent = s.next;
+      cmd = (cmd + 1) % CMDS.length;
+      say(`Listo: ${s.out}`);
+      refreshPill();
+    } else if (s.target === "tones") {
+      $$(".tone-out").forEach((el, i) => {
+        el.classList.remove("fresh"); void el.offsetWidth;
+        el.style.animationDelay = `${i * 90}ms`;
+        el.classList.add("fresh");
       });
+      message("Escrito en cuatro tonos");
+    } else if (s.target === "home") {
+      if (body) body.innerHTML = '<p class="fresh">Llévame al inicio.</p>';
+      message("Te llevo al inicio", 900);
+      setTimeout(() => { location.href = $(".lost .btn")?.href || "./"; }, 700);
+    } else {
+      // Sin campo de texto a la vista: como la app, queda en el portapapeles.
+      const text = plain(s.out.join(" "));
+      const done = () => message("Sin campo de texto: quedó en tu portapapeles", 3200);
+      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, () => message("Sin campo de texto a la vista", 2600));
+      else message("Sin campo de texto a la vista", 2600);
     }
+    window.umami?.track?.("Dictado", { lugar: d.ctx, origen: d.source });
+  }
 
-    // Marcas de corrector en línea doble, como el resto de la página.
-    const pts = (list) => "M" + list.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(" L");
-    function shape(mark, b) {
-      const { x, y, w, h } = b;
-      if (mark === "oval") {
-        const cx = x + w / 2, cy = y + h * .55, rx = w / 2 + 9, ry = h * .5 + 2, out = [];
-        for (let i = 0; i <= 72; i++) { const a = -Math.PI / 2 + (i / 72) * Math.PI * 2; out.push([cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]); }
-        return pts(out);
+  /* ---------- La ventana del hero ---------- */
+
+  const body = $("#winBody");
+  const head = $("#winHead");
+  const tabs = $$(".app-tab");
+  const mark = $(".tab-mark");
+  let heroSnapshot = body?.innerHTML;
+  function placeMark() {
+    const on = tabs.find((t) => t.getAttribute("aria-pressed") === "true");
+    if (!on || !mark) return;
+    mark.style.width = `${on.offsetWidth}px`;
+    mark.style.translate = `${on.offsetLeft}px 0`;
+  }
+  function showCaret() {
+    if (!body.querySelector(".caret")) heroSnapshot = body.innerHTML;
+    body.innerHTML = '<p><span class="caret" aria-hidden="true"></span></p>';
+  }
+  function restoreHero() {
+    if (body && body.querySelector(".caret")) body.innerHTML = heroSnapshot;
+  }
+  tabs.forEach((t) => t.addEventListener("click", () => {
+    if (dict) cancel("");
+    app = +t.dataset.app;
+    tabs.forEach((x) => x.setAttribute("aria-pressed", String(x === t)));
+    head.innerHTML = EX[app].head;
+    body.innerHTML = EX[app].out.map((p) => `<p class="fresh">${p}</p>`).join("");
+    placeMark();
+  }));
+  if (mark) {
+    $(".win-bar").classList.add("has-mark");
+    placeMark();
+    document.fonts?.ready.then(placeMark);
+  }
+
+  /* ---------- Mantener: puntero, Espacio o una tecla derecha ---------- */
+
+  let downAt = 0;
+  pill.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    pill.setPointerCapture?.(e.pointerId);
+    downAt = performance.now();
+    start("puntero");
+  });
+  pill.addEventListener("pointerup", () => {
+    if (!dict || dict.source !== "puntero") return;
+    if (performance.now() - downAt < 300) { cancel(""); message("Mantenla presionada mientras hablas"); return; }
+    stop();
+  });
+  pill.addEventListener("pointercancel", () => { if (dict?.source === "puntero") cancel(""); });
+  pill.addEventListener("contextmenu", (e) => e.preventDefault());
+  pill.addEventListener("keydown", (e) => {
+    if (e.key !== " " && e.key !== "Enter") return;
+    e.preventDefault();
+    if (!e.repeat) start("teclado");
+  });
+  pill.addEventListener("keyup", (e) => {
+    if (e.key !== " " && e.key !== "Enter") return;
+    e.preventDefault();
+    if (dict?.source === "teclado") stop();
+  });
+  pill.addEventListener("pointerenter", refreshPill);
+  pill.addEventListener("pointerleave", () => setTimeout(refreshPill, 60));
+  pill.addEventListener("focus", refreshPill);
+  pill.addEventListener("blur", () => { if (dict?.source === "teclado") cancel(""); refreshPill(); });
+
+  // Las teclas que la app acepta además de fn. fn no llega al navegador.
+  const KEYS = new Set(["AltRight", "MetaRight", "ControlRight", "ShiftRight"]);
+  let held = null;
+  let heldTimer = 0;
+  addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && dict) { cancel(); return; }
+    if (e.repeat) return;
+    if (KEYS.has(e.code) && !held && !dict) {
+      held = e.code;
+      // Un instante de espera: ⇧ + Tab no debe encender la píldora.
+      heldTimer = setTimeout(() => { if (held) start("tecla"); }, 180);
+      return;
+    }
+    if (held && e.code !== held) {
+      // Tecla + otra tecla era un atajo: se ignora, como en la app.
+      clearTimeout(heldTimer);
+      held = null;
+      if (dict?.source === "tecla") cancel("");
+    }
+  });
+  addEventListener("keyup", (e) => {
+    if (e.code !== held) return;
+    clearTimeout(heldTimer);
+    held = null;
+    if (dict?.source === "tecla") stop();
+  });
+  addEventListener("blur", () => { clearTimeout(heldTimer); held = null; if (dict && dict.source !== "auto") cancel(""); });
+
+  /* ---------- El reloj ---------- */
+
+  const levels = [0, 0, 0, 0, 0];
+  let screenOn = false;
+  let screenP = 0;
+  // En la 404 no hay nada que leer: el borde queda encendido, esperando.
+  let restEdge = $(".lost") ? 0.3 : 0.03;
+
+  ticker.add((t) => {
+    const now = performance.now();
+    const tt = reduced ? 0 : t;
+
+    // Palabras dichas a ritmo de voz; cada una sube el nivel.
+    if (dict) {
+      if (dict.i < dict.words.length && now >= dict.next) {
+        const w = dict.words[dict.i++];
+        live = live ? `${live} ${w}` : w;
+        dict.next = now + 150 + w.length * 34;
+        voice.target = 0.55 + Math.random() * 0.45;
+        refreshPill();
+        if (dict.source === "auto" && dict.i === dict.words.length) setTimeout(() => { if (dict?.source === "auto") stop(); }, 420);
       }
-      if (mark === "strike") return pts([[x - 4, y + h * .62], [x + w + 4, y + h * .5]]);
-      if (mark === "under") return pts([[x - 2, y + h * .95], [x + w + 3, y + h * .95]]);
-      if (mark === "wave") {
-        const out = [];
-        for (let px = 0; px <= w + 4; px += 2) out.push([x - 2 + px, y + h * .98 + Math.sin(px / 3.4) * 2.6]);
-        return pts(out);
-      }
-      // caret: la «v» invertida bajo el renglón, justo donde falta el signo
-      const cx = x + w + 2, by = y + h * .98;
-      return pts([[cx - 8, by + 10], [cx, by - 2], [cx + 8, by + 10]]);
+      voice.target = Math.max(0.12, voice.target * 0.93);
+    }
+    if (phase === "message" && now > messageUntil) { phase = "rest"; refreshPill(); }
+    voice.level += (voice.target - voice.level) * 0.3;
+
+    // Con el puntero o el foco encima, la píldora ya enseña un poco de luz.
+    const hint = phase === "rest" && (pill.matches(":hover") || pill.matches(":focus-visible")) ? 0.32 : 0;
+    for (let i = 0; i < 5; i++) {
+      if (phase === "processing") levels[i] = 0.32 + 0.22 * Math.sin(tt * 6 - i * 0.9);
+      else levels[i] = Math.max(voice.level, hint) * (0.6 + 0.4 * (0.5 + 0.5 * Math.sin(tt * (3.1 + i * 0.7) + i * 2.1)));
     }
 
-    function boxOf(t) {
-      const s = stage.getBoundingClientRect(), r = t.core.getBoundingClientRect();
-      return { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height };
+    pillGlow.measure();
+    drawGlow(pillGlow, levels, { t: tt, rim: phase === "rest" ? 0.6 : 1 });
+
+    pointer.x += (pointer.aim - pointer.x) * 0.05;
+    const cx = innerWidth / 2 + pointer.x * innerWidth * 0.16;
+    const breathe = reduced ? 1 : 0.85 + 0.15 * Math.sin(tt * 0.7);
+    const el = levels.map((l, i) => Math.max(l * 0.85, restEdge * breathe * (0.8 + 0.2 * Math.sin(tt * 0.5 + i))));
+    drawGlow(edge, el, { t: tt, cx, spread: innerWidth < 760 ? 1.1 : 0.85, scale: 0.75, alpha: 0.9 });
+
+    if (screenGlow && screenOn) {
+      const sl = levels.map((l, i) => Math.max(screenP * (0.75 + 0.25 * Math.sin(tt * 0.8 + i * 1.3)), l));
+      drawGlow(screenGlow, sl, { t: tt, scale: 0.8, alpha: 0.95 });
     }
+  });
 
-    function markUp(t, instant) {
-      const b = boxOf(t), d = shape(t.mark, b);
-      const paths = ["mk-o", "mk-i"].map((cls) => {
-        const p = document.createElementNS(NS, "path");
-        p.setAttribute("d", d);
-        p.setAttribute("pathLength", "1");
-        p.setAttribute("class", cls);
-        p.style.strokeDasharray = "1";
-        marksEl.append(p);
-        return p;
-      });
-      const note = document.createElement("span");
-      note.className = "gl-note" + (t.mark === "caret" ? (t.note === "." ? " big dot" : " big") : "");
-      note.dataset.t = t.t;
-      note.textContent = t.note;
-      const caret = t.mark === "caret";
-      note.style.left = `${caret ? b.x + b.w + 2 : b.x + b.w / 2}px`;
-      note.style.top = `${caret ? b.y + 4 : b.y - (t.mark === "oval" ? 4 : 8)}px`;
-      notesEl.append(note);
-      if (instant) { paths.forEach((p) => (p.style.strokeDashoffset = "0")); return; }
-      const dur = t.mark === "oval" ? 620 : t.mark === "caret" ? 280 : 480;
-      paths.forEach((p) => anim(p, { strokeDashoffset: [1, 0] }, { duration: dur, easing: "cubic-bezier(.45,.05,.3,1)" }));
-      anim(note, { opacity: [0, 1], translate: ["0 6px", "0 0"] }, { duration: 360, delay: dur * .55 });
-      return dur;
-    }
+  /* ---------- Secciones ---------- */
 
-    // Una frase completa: voz → corrección → en limpio.
-    async function run(spec, my) {
-      const toks = build(spec);
-      const live = () => my === gen;
+  if (motion) {
+    // Qué tan encendido está el borde en reposo: más en el cierre, donde termina la página.
+    const fin = $(".final");
+    if (fin) ST.create({ trigger: fin, start: "top 70%", end: "bottom bottom", onUpdate: (s) => { restEdge = 0.03 + s.progress * 0.42; }, onLeaveBack: () => { restEdge = 0.03; } });
 
-      // 1. Voz: cada palabra llega en líneas, al ritmo de quien habla.
-      pill.classList.remove("quiet", "polishing");
-      let at = 0;
-      for (const t of toks) {
-        anim(t.rEl, { opacity: [0, 1], transform: ["translateY(12px) scale(1.12)", "none"] }, { duration: 520, delay: at });
-        at += 110 + t.r.length * 38 + (t.t === "fill" ? 160 : 0);
-      }
-      await sleep(at + 500); if (!live()) return;
+    // Cómo funciona: cada verbo se enciende al llegar.
+    $$(".step").forEach((s) => ST.create({ trigger: s, start: "top 72%", onEnter: () => s.classList.add("is-on"), onLeaveBack: () => s.classList.remove("is-on") }));
 
-      // 2. Corrección: la voz se asienta en gris y aparecen las marcas, una a la vez.
-      pill.classList.add("polishing");
-      lineEl.classList.add("heard");
-      await sleep(450); if (!live()) return;
-      for (const t of toks) {
-        if (!t.mark) continue;
-        const d = markUp(t);
-        await sleep(d + 420); if (!live()) return;
-      }
-      await sleep(600); if (!live()) return;
+    // La pantalla de privacidad: la luz sube hasta chocar con el borde.
+    const screen = $("#screen");
+    if (screen) ST.create({
+      trigger: screen, start: "top bottom", end: "bottom top",
+      onToggle: (s) => { screenOn = s.isActive; if (screenOn) screenGlow.measure(); },
+      onUpdate: (s) => { screenP = smooth(0.15, 0.55, s.progress) * 0.95; },
+    });
 
-      // 3. En limpio: se van las marcas, se cierra el hueco y cada palabra pasa a tinta, de izquierda a derecha.
-      for (const el of [...marksEl.children, ...notesEl.children]) anim(el, { opacity: [1, 0] }, { duration: 260 });
-      const widths = toks.map((t) => [t.el.getBoundingClientRect().width, t.cEl.getBoundingClientRect().width]);
-      toks.forEach((t, i) => {
-        const delay = i * 55, gone = !t.c;
-        anim(t.el, { width: [`${widths[i][0]}px`, `${widths[i][1]}px`] }, { duration: 620, delay: gone ? 120 : delay + 80 });
-        anim(t.rEl, { opacity: [1, 0], filter: ["blur(0)", "blur(5px)"] }, { duration: gone ? 220 : 300, delay: gone ? 0 : delay });
-        if (gone) return;
-        const changed = t.t && t.c !== t.r || t.t === "fix";
-        const ink = rgb(t.el, "var(--ink)"), c = changed ? rgb(t.el, "var(--c)") : ink;
-        anim(t.cEl, { opacity: [0, 1], filter: ["blur(5px)", "blur(0)"], translate: ["0 5px", "0 0"] }, { duration: 420, delay: delay + 120 });
-        anim(t.cEl, { color: [c, c, ink] }, { duration: 2600, delay: delay + 120, easing: "linear" });
-      });
-      pill.classList.remove("polishing");
-      pill.classList.add("quiet");
-      await sleep(toks.length * 55 + 2900); if (!live()) return;
+    // Nav: la sección actual queda marcada.
+    $$(".nav-a").forEach((a) => {
+      const href = a.getAttribute("href");
+      const sec = href.startsWith("#") && $(href);
+      if (sec) ST.create({ trigger: sec, start: "top 50%", end: "bottom 50%", onToggle: (s) => (s.isActive ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")) });
+    });
 
-      // 4. La frase limpia se aparta para la siguiente.
-      await anim(lineEl, { opacity: [1, 0], translate: ["0 0", "0 -16px"] }, { duration: 500, fill: "none" }).finished.catch(() => {});
-      if (!live()) return;
-      lineEl.style.opacity = "0";
-    }
+    initChapters();
+  }
 
-    async function loop(start) {
-      const my = ++gen;
-      for (let i = start; ; i = (i + 1) % LINES.length) {
-        lineIdx = i;
-        lineEl.style.opacity = "";
-        await run(LINES[i], my);
-        if (my !== gen) return;
-        await sleep(350);
-        if (my !== gen) return;
-      }
-    }
+  // Lo dicho, lo escrito: el scroll pasa cada caso de luz a tinta.
+  function initChapters() {
+    const track = $("#swTrack");
+    if (!track) return;
+    const cases = $$(".sw-case", track);
+    const index = $$(".sw-index li", track);
+    const said = cases.map((c) => {
+      const p = $(".sw-said", c);
+      const wrap = (node) => {
+        [...node.childNodes].forEach((n) => {
+          if (n.nodeType === 3) {
+            const frag = document.createDocumentFragment();
+            n.textContent.split(/(\s+)/).forEach((part) => {
+              if (!part) return;
+              if (/^\s+$/.test(part)) frag.append(part);
+              else { const s = document.createElement("span"); s.className = "wd"; s.textContent = part; frag.append(s); }
+            });
+            n.replaceWith(frag);
+          } else if (n.nodeType === 1 && !n.classList.contains("sw-tag")) wrap(n);
+        });
+      };
+      wrap(p);
+      return { p, words: $$(".wd", p), out: $(".sw-out", c) };
+    });
+    const n = cases.length;
+    const apply = (prog) => {
+      const k = Math.min(n - 1, Math.floor(prog * n));
+      const q = Math.min(1, prog * n - k);
+      cases.forEach((c, i) => c.classList.toggle("is-on", i === k));
+      index.forEach((li, i) => { li.classList.toggle("is-on", i === k); li.style.setProperty("--q", i < k ? 1 : i === k ? smooth(0, 0.85, q) : 0); });
+      const s = said[k];
+      const m = s.words.length;
+      s.words.forEach((w, i) => w.classList.toggle("on", q >= 0.04 + (i / m) * 0.4));
+      s.p.classList.toggle("cut", q >= 0.5);
+      s.out.classList.toggle("in", q >= 0.62);
+    };
+    apply(0);
+    ST.create({ trigger: track, start: "top top", end: "bottom bottom", onUpdate: (s) => apply(s.progress) });
+  }
 
-    // Con movimiento reducido queda fija la frase más ilustrativa, ya marcada.
-    function still() {
-      gen++;
-      stage.getAnimations({ subtree: true }).forEach((a) => a.cancel());
-      lineEl.style.opacity = "";
-      pill.classList.add("quiet");
-      pill.classList.remove("polishing");
-      const toks = build(LINES[STATIC_LINE]);
-      lineEl.classList.add("heard");
-      for (const t of toks) if (t.mark) markUp(t, true);
-    }
+  /* ---------- Primer vistazo: la píldora dicta sola una vez ---------- */
 
-    let lineIdx = 0;
-    function start(i = 0) {
-      lineIdx = i;
-      if (reduce) return still();
-      stage.getAnimations({ subtree: true }).filter((a) => !(a instanceof CSSAnimation)).forEach((a) => a.cancel());
-      loop(i);
-      applyHalt();
-    }
-
-    function setPaused(p) {
-      paused = p;
-      pauseBtn.setAttribute("aria-pressed", String(p));
-      pauseLabel.textContent = p ? "Reanudar" : "Pausar";
-      applyHalt();
-    }
-    pauseBtn.addEventListener("click", () => setPaused(!paused));
-    new IntersectionObserver(([e]) => { visible = e.isIntersecting; applyHalt(); }).observe(stage);
-    reduceMQ.addEventListener("change", () => { reduce = reduceMQ.matches; pauseBtn.hidden = reduce; start(lineIdx); });
-    pauseBtn.hidden = reduce;
-    addEventListener("resize", () => reduce && still());
-
-    // La píldora de la galera: escucha, pule (cresta que recorre) y vuelve a reposo.
-    const pillGlow = voiceGlow(pill);
-    let pillLvl = 0;
-    (function pillLoop(now) {
-      requestAnimationFrame(pillLoop);
-      if (reduce) { if (pillLvl) pillGlow(0, pillLvl = 0, false); return; }
-      if (halted()) return;
-      const quiet = pill.classList.contains("quiet"), polishing = pill.classList.contains("polishing");
-      if (quiet && !pillLvl) return;
-      const target = quiet ? 0 : polishing ? .5 : .6 + .35 * Math.sin(now / 140) * Math.sin(now / 330);
-      pillLvl += (target - pillLvl) * .15;
-      if (quiet && pillLvl < .004) pillLvl = 0;
-      pillGlow(now, pillLvl, polishing);
-    })(0);
-
-    document.fonts.ready.then(() => start(0));
+  pickContext();
+  refreshPill();
+  if (motion && body) {
+    setTimeout(() => {
+      if (dict || phase !== "rest" || scroll.y > 80 || context !== "hero") return;
+      start("auto");
+    }, 2200);
   }
 })();

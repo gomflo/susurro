@@ -21,6 +21,11 @@ Requiere macOS 26 o posterior y Apple Silicon.
 
 Es la landing: HTML, CSS y JS estáticos, sin build. GitHub Pages publica la rama `main` desde la raíz.
 
+- `DESIGN.md` tiene el concepto y el sistema visual: léelo antes de cambiar el diseño.
+- `vendor/` trae GSAP (con ScrollTrigger y SplitText) y Lenis tal cual salen de npm. Para actualizarlos, copia los `.min.js` de `node_modules/*/dist/`.
+- `404.html` usa rutas absolutas (`/susurro/…`) porque GitHub Pages la sirve desde cualquier profundidad.
+- `assets/hub/` son capturas reales de la app (`susurro --render`), recortadas y en WebP.
+
 - El instalador no vive aquí: es el archivo `Susurro.dmg` del último [release](https://github.com/gomflo/susurro/releases), que es a donde apuntan los botones.
 - Las rutas son relativas porque el sitio vive bajo `/susurro/`.
 

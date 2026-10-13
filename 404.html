@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>No se oyó nada · Susurro</title>
+  <meta name="description" content="Esta página no existe. Vuelve al inicio de Susurro, el dictado por voz para Mac que funciona 100 % en tu equipo.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0F0F11">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="/susurro/favicon.svg?v=5" type="image/svg+xml">
+  <link rel="preload" href="/susurro/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/susurro/styles.css?v=20">
+  <script>document.documentElement.classList.add("js");if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("motion");</script>
+  <script defer src="https://stats.gomflo.dev/script.js" data-website-id="05e58194-9321-464c-a08d-d00c3d476241" data-domains="gomflo.dev" data-performance="true"></script>
+</head>
+<body>
+  <a class="skip" href="#contenido">Saltar al contenido</a>
+
+  <header class="top" id="top">
+    <a class="brand" href="/susurro/" aria-label="Susurro, inicio">
+      <svg class="mark" viewBox="0 0 64 64" width="32" height="32" aria-hidden="true"><use href="#mark"/></svg>
+      <span>susurro</span>
+    </a>
+    <nav class="nav" id="nav" aria-label="Secciones">
+      <a class="nav-a" href="/susurro/#como">Cómo funciona</a>
+      <a class="nav-a" href="/susurro/#antes-despues">Lo dicho, lo escrito</a>
+      <a class="nav-a" href="/susurro/#privacidad">Privacidad</a>
+      <a class="nav-a" href="/susurro/#preguntas">Preguntas</a>
+    </nav>
+    <a class="btn btn-sm top-cta" href="https://github.com/gomflo/susurro/releases/latest/download/Susurro.dmg" data-umami-event="Descarga" data-umami-event-lugar="nav"><span class="btn-glow" aria-hidden="true"></span><span class="btn-label">Descargar</span></a>
+    <button class="menu-btn" type="button" id="menuBtn" aria-expanded="false" aria-controls="nav"><span class="menu-open">Menú</span><span class="menu-close">Cerrar</span></button>
+  </header>
+
+  <main id="contenido" tabindex="-1">
+    <section class="lost" data-dictate="home" aria-labelledby="lost-title">
+      <p class="lost-said said" aria-hidden="true">eh…</p>
+      <h1 id="lost-title" class="lost-title">No se oyó nada. Esta página no existe.</h1>
+      <p class="lede">Puede que el enlace esté mal escrito o que la página se haya movido. Mantén presionada la píldora y di «llévame al inicio», o usa el botón.</p>
+      <figure class="window lost-window" data-reveal="fade" data-intro data-delay="0.3">
+        <p class="win-head"><span>Buscar</span> susurro</p>
+        <div class="win-body" id="winBody" aria-live="polite"><p><span class="caret" aria-hidden="true"></span></p></div>
+        <figcaption class="win-cap"><span class="cap-dot" aria-hidden="true"></span><span>Mantén la píldora de abajo<span class="fine-only"> o la tecla ⌥ derecha</span> y di «llévame al inicio».</span></figcaption>
+      </figure>
+      <div class="cta">
+        <a class="btn btn-lg" href="/susurro/"><span class="btn-glow" aria-hidden="true"></span><span class="btn-label">Volver al inicio</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a class="brand" href="/susurro/" aria-label="Susurro, inicio">
+      <svg class="mark" viewBox="0 0 64 64" width="28" height="28" aria-hidden="true"><use href="#mark"/></svg>
+      <span>susurro</span>
+    </a>
+    <p>Dictado por voz para Mac, 100 % en tu equipo.</p>
+    <nav aria-label="Pie de página">
+      <a href="https://github.com/gomflo/susurro/releases/latest/download/Susurro.dmg" data-umami-event="Descarga" data-umami-event-lugar="pie">Descargar</a>
+      <a href="https://github.com/gomflo/susurro/releases">Versiones</a>
+      <a href="/susurro/#privacidad">Privacidad</a>
+      <a href="/susurro/#preguntas">Preguntas</a>
+    </nav>
+    <p class="legal">© 2026 Susurro. Apple, Mac, macOS y Apple Intelligence son marcas de Apple Inc. Letra: Bricolage Grotesque y la de tu sistema.</p>
+  </footer>
+
+  <!-- La píldora: abajo al centro, como en tu Mac. Mantenla para dictar. -->
+  <div class="voice" id="voice">
+    <div class="glow edge" id="edge" aria-hidden="true"></div>
+    <button class="pill" type="button" id="pill" aria-describedby="pillHelp">
+      <span class="glow pill-glow" id="pillGlow" aria-hidden="true"></span>
+      <span class="pill-text" id="pillText">Mantén para dictar</span>
+    </button>
+    <p class="sr-only" id="pillHelp">Mantén presionado con el puntero, o con Espacio, mientras dura el dictado de ejemplo; suelta para escribirlo.</p>
+    <p class="sr-only" id="pillStatus" aria-live="polite"></p>
+  </div>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="mark" viewBox="0 0 64 64">
+      <defs>
+        <path id="markS" d="M32.08 40.84Q28.84 40.84 26.86 39.90Q24.87 38.96 24.28 37.51Q24.09 37.01 24.09 36.58Q24.09 35.67 24.69 35.09Q25.29 34.52 26.22 34.52Q27.47 34.52 28.61 35.65Q29.31 36.41 30.14 36.78Q30.97 37.14 32.13 37.14Q32.85 37.14 33.37 36.97Q33.89 36.79 34.17 36.47Q34.46 36.14 34.46 35.69Q34.46 35.13 34.00 34.79Q33.55 34.46 32.39 34.23L29.44 33.64Q26.95 33.15 25.67 31.87Q24.40 30.58 24.40 28.67Q24.40 26.12 26.43 24.64Q28.45 23.16 31.95 23.16Q33.89 23.16 35.36 23.64Q36.84 24.12 37.78 24.91Q38.73 25.70 39.02 26.62Q39.16 27.03 39.16 27.42Q39.16 28.22 38.65 28.73Q38.14 29.24 37.07 29.24Q36.61 29.24 36.08 29.06Q35.55 28.88 35.20 28.56Q34.56 27.94 33.84 27.40Q33.12 26.86 31.91 26.86Q30.92 26.86 30.29 27.26Q29.67 27.67 29.67 28.36Q29.67 28.90 30.13 29.27Q30.60 29.64 31.80 29.88L34.73 30.46Q37.45 31.00 38.68 32.09Q39.91 33.18 39.91 35.08Q39.91 36.84 38.93 38.13Q37.95 39.43 36.19 40.13Q34.43 40.84 32.08 40.84Z"/>
+        <clipPath id="mk-sq"><rect width="64" height="64" rx="14.4"/></clipPath>
+        <linearGradient id="mk-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1D1C21"/><stop offset="1" stop-color="#0B0B0D"/></linearGradient>
+        <radialGradient id="mk-1"><stop offset="0" stop-color="#FF7866" stop-opacity=".95"/><stop offset=".45" stop-color="#FF7866" stop-opacity=".45"/><stop offset="1" stop-color="#FF7866" stop-opacity="0"/></radialGradient>
+        <radialGradient id="mk-2"><stop offset="0" stop-color="#FF3D99" stop-opacity=".95"/><stop offset=".45" stop-color="#FF3D99" stop-opacity=".45"/><stop offset="1" stop-color="#FF3D99" stop-opacity="0"/></radialGradient>
+        <radialGradient id="mk-3"><stop offset="0" stop-color="#C74DF2" stop-opacity=".95"/><stop offset=".45" stop-color="#C74DF2" stop-opacity=".45"/><stop offset="1" stop-color="#C74DF2" stop-opacity="0"/></radialGradient>
+        <radialGradient id="mk-4"><stop offset="0" stop-color="#806BFF" stop-opacity=".95"/><stop offset=".45" stop-color="#806BFF" stop-opacity=".45"/><stop offset="1" stop-color="#806BFF" stop-opacity="0"/></radialGradient>
+        <radialGradient id="mk-5"><stop offset="0" stop-color="#FFDBED" stop-opacity=".9"/><stop offset="1" stop-color="#FFDBED" stop-opacity="0"/></radialGradient>
+        <linearGradient id="mk-rim" x1="0" x2="1"><stop offset="0" stop-color="#FF7866" stop-opacity="0"/><stop offset=".15" stop-color="#FF7866"/><stop offset=".35" stop-color="#FF3D99"/><stop offset=".5" stop-color="#FFDBED"/><stop offset=".66" stop-color="#C74DF2"/><stop offset=".85" stop-color="#806BFF"/><stop offset="1" stop-color="#806BFF" stop-opacity="0"/></linearGradient>
+      </defs>
+      <g clip-path="url(#mk-sq)">
+        <rect width="64" height="64" fill="url(#mk-bg)"/>
+        <ellipse cx="8" cy="66" rx="20" ry="22" fill="url(#mk-1)"/>
+        <ellipse cx="25" cy="66" rx="20" ry="27" fill="url(#mk-2)"/>
+        <ellipse cx="41" cy="66" rx="20" ry="24" fill="url(#mk-3)"/>
+        <ellipse cx="57" cy="66" rx="20" ry="21" fill="url(#mk-4)"/>
+        <ellipse cx="32" cy="66" rx="12" ry="14" fill="url(#mk-5)"/>
+        <rect y="62.6" width="64" height="1.4" fill="url(#mk-rim)"/>
+      </g>
+      <rect x=".5" y=".5" width="63" height="63" rx="14" fill="none" stroke="#fff" stroke-opacity=".1"/>
+      <use href="#markS" fill="#fff" transform="translate(32 29) scale(1.75) translate(-32 -32)"/>
+    </symbol>
+  </svg>
+  <script src="/susurro/vendor/gsap.min.js" defer></script>
+  <script src="/susurro/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="/susurro/vendor/SplitText.min.js" defer></script>
+  <script src="/susurro/vendor/lenis.min.js" defer></script>
+  <script src="/susurro/app.js?v=20" defer></script>
+</body>
+</html>
